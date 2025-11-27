@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlphaFamily v24 (Puzzle Fix & Full Philwords)</title>
+    <title>AlphaFamily v26 (Final Fix)</title>
     <meta name="theme-color" content="#FFC107">
     <link rel="manifest" href="manifest.json">
     <style>
@@ -16,7 +16,8 @@
         
         body { 
             margin: 0; padding: 0; font-family: var(--font); color: var(--text); 
-            height: 100vh; overflow: hidden;
+            height: 100dvh; /* Adapt to mobile screens perfectly */
+            overflow: hidden;
             background: linear-gradient(135deg, #FFFDE7 0%, #E0F7FA 100%);
         }
 
@@ -69,21 +70,47 @@
         .word-emoji { font-size: 5rem; display: block; margin: 5px 0; animation: popIn 0.5s; }
         .instruction { font-size: 1.1rem; color: #333; background: white; padding: 5px 20px; border-radius: 20px; text-align: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        /* PUZZLE */
+        /* PUZZLE (FIXED LTR) */
         .puzzle-text-top { font-size: 3rem; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
         .puzzle-text-bot { font-size: 2rem; font-weight: bold; color: #333; margin-top: 5px; }
-        .puzzle-container { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; width: 300px; height: 300px; margin: 5px auto; background: #eee; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .puzzle-container { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            grid-template-rows: repeat(3, 1fr); 
+            gap: 2px; width: 300px; height: 300px; 
+            margin: 5px auto; background: #eee; 
+            border: 4px solid white; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            direction: ltr !important; /* Force Left-to-Right even for Hebrew */
+        }
         .puzzle-piece { background-repeat: no-repeat; background-size: 300px 300px; cursor: pointer; transition: transform 0.2s, border 0.2s; border: 1px solid rgba(255,255,255,0.5); }
         .puzzle-piece.selected { border: 3px solid var(--accent); transform: scale(0.95); z-index: 10; box-shadow: 0 0 15px var(--accent); }
-        /* Зеленая рамка если на правильном месте */
         .puzzle-piece.correct-pos { border: 3px solid #66BB6A; } 
         .puzzle-piece.error { border: 3px solid red; }
 
         /* PAINT */
         #magic-canvas { width: 300px; height: 300px; background: white; border-radius: 20px; border: 4px solid var(--accent); touch-action: none; }
-        .palette { display: flex; gap: 10px; margin-top: 10px; }
-        .color-swatch { width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
-        .color-swatch.active { transform: scale(1.2); border-color: #333; }
+        .palette { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+        .color-swatch { width: 40px; height: 40px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2); cursor: pointer; }
+        .color-swatch.active { transform: scale(1.2); border-color: #333; z-index: 2; }
+
+        /* JUNIOR FIND PICTURE */
+        .find-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; max-width: 350px; }
+        .find-card { background: white; border-radius: 15px; padding: 15px; font-size: 3rem; text-align: center; box-shadow: 0 5px 0 #ddd; cursor: pointer; border: 2px solid white; transition: transform 0.1s; }
+        .find-card:active { transform: scale(0.95); }
+        .find-card.wrong { background: #FFEBEE; border-color: #EF5350; }
+        .find-card.correct { background: #E8F5E9; border-color: #66BB6A; animation: popIn 0.5s; }
+
+        /* SENIOR STATIC LETTERS */
+        .pool-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px; min-height: 120px; align-content: flex-start; }
+        .letter-chip { background: white; padding: 12px 18px; border-radius: 12px; font-weight: bold; font-size: 1.6rem; box-shadow: 0 4px 0 #CFD8DC; cursor: pointer; border: 1px solid #ECEFF1; transition: opacity 0.2s; }
+        .letter-chip.used { opacity: 0; pointer-events: none; }
+        .slot-container { display: flex; gap: 6px; justify-content: center; margin: 15px 0; min-height: 55px; flex-wrap: wrap; }
+        .slot { width: 50px; height: 50px; border-bottom: 4px solid #90A4AE; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; background: rgba(255,255,255,0.8); border-radius: 8px 8px 0 0; }
+        .slot.filled { border-bottom-color: var(--blue); background: white; }
+        .slot.correct { border-bottom-color: var(--green); background: #E8F5E9; }
+        .slot.wrong { border-bottom-color: var(--red); }
+        .difficulty-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.6); padding: 8px 15px; border-radius: 20px; margin-bottom: 5px; font-weight: bold; }
 
         /* BUBBLES */
         #bubbles-container { width: 100%; height: 350px; position: relative; overflow: hidden; background: rgba(255,255,255,0.3); border-radius: 20px; border: 2px dashed rgba(0,0,0,0.1); }
@@ -101,25 +128,16 @@
         .phil-word-tag { padding: 4px 8px; background: white; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; font-size: 0.9rem; }
         .phil-word-tag.done { background: var(--green); color: white; text-decoration: line-through; }
 
-        /* SENIOR & MATH */
+        /* MATH & DICT */
         .math-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 400px; }
         .math-card { background: white; padding: 15px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.1); font-weight: bold; }
         .math-problem { font-size: 2.5rem; font-weight: bold; background: white; padding: 15px 30px; border-radius: 20px; margin-bottom: 20px; direction: ltr !important; unicode-bidi: bidi-override; }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; }
         .num-btn { background: white; border: none; padding: 15px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 0 #ddd; direction: ltr; }
-        .slot-container { display: flex; gap: 6px; justify-content: center; margin: 15px 0; min-height: 55px; flex-wrap: wrap; }
-        .slot { width: 50px; height: 50px; border-bottom: 4px solid #90A4AE; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; background: rgba(255,255,255,0.8); border-radius: 8px 8px 0 0; }
-        .slot.filled { border-bottom-color: var(--blue); background: white; }
-        .slot.correct { border-bottom-color: var(--green); background: #E8F5E9; }
-        .slot.wrong { border-bottom-color: var(--red); }
-        .pool-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
-        .letter-chip { background: white; padding: 12px 18px; border-radius: 12px; font-weight: bold; font-size: 1.6rem; box-shadow: 0 4px 0 #CFD8DC; cursor: pointer; border: 1px solid #ECEFF1; }
-        .difficulty-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.6); padding: 8px 15px; border-radius: 20px; margin-bottom: 5px; font-weight: bold; }
-
-        .dict-list { width: 100%; max-width: 500px; margin-top: 20px; padding-bottom: 50px; }
-        .dict-item { background: white; padding: 12px 20px; margin: 10px 0; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .table-display-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 400px; max-height: 60vh; overflow-y: auto; direction: ltr; }
         .table-cell { background: white; padding: 5px; border-radius: 5px; text-align: center; font-size: 0.9rem; box-shadow: 0 2px 0 #eee; }
+        .dict-list { width: 100%; max-width: 500px; margin-top: 20px; padding-bottom: 50px; }
+        .dict-item { background: white; padding: 12px 20px; margin: 10px 0; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 
         #confetti { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100; width: 100%; height: 100%; }
         @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -131,7 +149,7 @@
 <body>
     <canvas id="confetti"></canvas>
 
-    <!-- GLOBAL HEADER (Button is managed by JS to hide/show) -->
+    <!-- GLOBAL HEADER -->
     <button class="lang-btn" onclick="app.toggleLang()">🇷🇺</button>
 
     <!-- 1. MAIN MENU -->
@@ -164,7 +182,8 @@
         <div class="map-header"><span class="instruction" id="lbl-map">Карта</span></div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
             <button class="btn btn-purple" style="width:auto;" onclick="app.showDictionary()"><span id="lbl-dict">📖 Словарь</span></button>
-            <button class="btn btn-cyan" style="width:auto;" onclick="app.showPhilwordMenu()"><span id="lbl-find">🔎 Найди слова</span></button>
+            <!-- Philwords button only shows for Senior/Math in JS, hidden for Junior -->
+            <button class="btn btn-cyan" id="btn-philwords" style="width:auto;" onclick="app.showPhilwordMenu()"><span id="lbl-find">🔎 Найди слова</span></button>
         </div>
         <div class="map-path" id="map-container"></div>
     </div>
@@ -182,14 +201,10 @@
         <h2 style="margin-top: 80px;" id="lbl-phil-title">Найди слова</h2>
         <div class="map-path" id="phil-menu-container"></div>
     </div>
-    <!-- 4.6 PHILWORD GAME -->
     <div id="view-game-phil" class="screen hidden">
         <button class="btn btn-home" onclick="app.go('view-phil-menu')">❌</button>
         <div class="game-area">
-            <div>
-                <div class="puzzle-text-bot" id="phil-letter-big">A</div>
-                <div class="phil-targets" id="phil-targets"></div>
-            </div>
+            <div><div class="puzzle-text-bot" id="phil-letter-big">A</div><div class="phil-targets" id="phil-targets"></div></div>
             <div class="phil-grid" id="phil-grid"></div>
             <div class="instruction" id="lbl-phil-hint">Нажми на буквы</div>
         </div>
@@ -206,10 +221,14 @@
             </div>
             <canvas id="magic-canvas" width="300" height="300"></canvas>
             <div class="palette">
-                <div class="color-swatch active" style="background:#2196F3" onclick="app.setColor('#2196F3',this)"></div>
-                <div class="color-swatch" style="background:#F44336" onclick="app.setColor('#F44336',this)"></div>
-                <div class="color-swatch" style="background:#4CAF50" onclick="app.setColor('#4CAF50',this)"></div>
+                <div class="color-swatch active" style="background:#F44336" onclick="app.setColor('#F44336',this)"></div>
+                <div class="color-swatch" style="background:#FF9800" onclick="app.setColor('#FF9800',this)"></div>
                 <div class="color-swatch" style="background:#FFEB3B" onclick="app.setColor('#FFEB3B',this)"></div>
+                <div class="color-swatch" style="background:#4CAF50" onclick="app.setColor('#4CAF50',this)"></div>
+                <div class="color-swatch" style="background:#2196F3" onclick="app.setColor('#2196F3',this)"></div>
+                <div class="color-swatch" style="background:#3F51B5" onclick="app.setColor('#3F51B5',this)"></div>
+                <div class="color-swatch" style="background:#9C27B0" onclick="app.setColor('#9C27B0',this)"></div>
+                <div class="color-swatch" style="background:#795548" onclick="app.setColor('#795548',this)"></div>
             </div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
@@ -225,11 +244,23 @@
             <div class="puzzle-text-top" id="puz-letter">A</div>
             <div class="puzzle-container" id="jun-puzzle-cont"></div>
             <div class="puzzle-text-bot" id="puz-word">Word</div>
-            
             <div style="display:flex; gap:10px; align-items:center;">
                 <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
                 <button class="btn btn-green" id="btn-jun-puzzle-check" onclick="app.checkJuniorPuzzle(true)">✔</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 6.5 JUNIOR: FIND PICTURE -->
+    <div id="view-game-jun-find" class="screen hidden">
+        <button class="btn btn-home" onclick="app.goBackFromGame()">❌</button>
+        <div class="game-area">
+            <div>
+                <div class="puzzle-text-top" id="find-letter">A</div>
+                <div class="instruction" id="lbl-task-find">Найди картинку!</div>
+            </div>
+            <div class="find-grid" id="find-grid"></div>
+            <div style="height:50px"></div>
         </div>
     </div>
 
@@ -245,7 +276,6 @@
             <div id="bubbles-container"></div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
-                <button class="btn btn-green" onclick="app.finishLevel(3)">➜</button>
             </div>
         </div>
     </div>
@@ -259,13 +289,11 @@
                 <div class="word-emoji" id="sen-img">🍎</div>
                 <label class="difficulty-toggle"><input type="checkbox" id="chk-hardmode" onchange="app.toggleHardMode()"> 💀 <span id="lbl-hard">Сложно</span></label>
             </div>
-            
             <div class="instruction" id="lbl-task-write">Напиши слово:</div>
             <div class="slot-container" id="sen-slots"></div>
             <div class="pool-container" id="sen-pool"></div>
             <div style="margin-top: auto; width: 100%; display:flex; flex-direction:column; align-items:center;">
                 <button class="btn btn-blue" onclick="app.speakCurrentWord()">🔊</button>
-                <button class="btn btn-green" id="btn-sen-check" onclick="app.checkSenior()">✔</button>
             </div>
         </div>
     </div>
@@ -284,6 +312,19 @@
             <div class="math-card" onclick="app.showMathTables()">📜 <span class="lbl-table">Таблица</span></div>
         </div>
     </div>
+    <div id="view-game-math" class="screen hidden">
+        <button class="btn btn-home" onclick="app.go('view-math-menu')">❌</button>
+        <div class="game-area">
+            <div class="instruction" id="math-streak-label">1</div>
+            <div class="math-problem" id="math-display"></div>
+            <div class="numpad">
+                <button class="num-btn" onclick="app.mathInput(1)">1</button><button class="num-btn" onclick="app.mathInput(2)">2</button><button class="num-btn" onclick="app.mathInput(3)">3</button>
+                <button class="num-btn" onclick="app.mathInput(4)">4</button><button class="num-btn" onclick="app.mathInput(5)">5</button><button class="num-btn" onclick="app.mathInput(6)">6</button>
+                <button class="num-btn" onclick="app.mathInput(7)">7</button><button class="num-btn" onclick="app.mathInput(8)">8</button><button class="num-btn" onclick="app.mathInput(9)">9</button>
+                <button class="num-btn" onclick="app.mathInput('del')">⬅</button><button class="num-btn" onclick="app.mathInput(0)">0</button><button class="num-btn green" onclick="app.checkMath()">OK</button>
+            </div>
+        </div>
+    </div>
     <div id="view-math-tables" class="screen center-content hidden">
         <button class="btn btn-home" onclick="app.go('view-math-menu')">⬅</button>
         <h2 id="lbl-choose-num">Выбери цифру:</h2>
@@ -297,9 +338,9 @@
 
     <script>
     const TRANS = {
-        ru: { jun_t:"Малыши", jun_d:"до 6 лет", sen_t:"Старшие", sen_d:"до 10 лет", sel_sub:"Выбери предмет", l_let:"🔤 Буквы", l_math:"🧮 Математика", map:"Карта", dict:"📖 Словарь", hard:"Сложно", p_let:"Буква", p_num:"Цифра", paint:"Раскрась!", pop:"Лопай!", write:"Напиши слово:", task:"Задания", table:"Таблица", choose:"Выбери цифру", yes:["Молодец!"], no:["Попробуй еще"], find:"🔎 Найди слова" },
-        en: { jun_t:"Junior", jun_d:"up to 6", sen_t:"Senior", sen_d:"up to 10", sel_sub:"Select Subject", l_let:"🔤 Letters", l_math:"🧮 Math", map:"Map", dict:"📖 Words", hard:"Hard", p_let:"Letter", p_num:"Number", paint:"Paint it!", pop:"Pop it!", write:"Write word:", task:"Tasks", table:"Table", choose:"Choose number", yes:["Good job!"], no:["Try again"], find:"🔎 Find Words" },
-        he: { jun_t:"קטנטנים", jun_d:"עד גיל 6", sen_t:"גדולים", sen_d:"עד גיל 10", sel_sub:"בחר נושא", l_let:"🔤 אותיות", l_math:"🧮 חשבון", map:"מפה", dict:"📖 מילים", hard:"קשה", p_let:"האות", p_num:"המספר", paint:"צייר!", pop:"פוצץ!", write:"כתוב מילה:", task:"תרגילים", table:"לוח הכפל", choose:"בחר מספר", yes:["כל הכבוד!"], no:["נסה שוב"], find:"🔎 מצא מילים" }
+        ru: { jun_t:"Малыши", jun_d:"до 6 лет", sen_t:"Старшие", sen_d:"до 10 лет", sel_sub:"Выбери предмет", l_let:"🔤 Буквы", l_math:"🧮 Математика", map:"Карта", dict:"📖 Словарь", hard:"Сложно", p_let:"Буква", p_num:"Цифра", paint:"Раскрась!", pop:"Лопай!", write:"Напиши слово:", task:"Задания", table:"Таблица", choose:"Выбери цифру", yes:["Молодец!"], no:["Попробуй еще"], find:"🔎 Найди слова", find_p:"Найди:" },
+        en: { jun_t:"Junior", jun_d:"up to 6", sen_t:"Senior", sen_d:"up to 10", sel_sub:"Select Subject", l_let:"🔤 Letters", l_math:"🧮 Math", map:"Map", dict:"📖 Words", hard:"Hard", p_let:"Letter", p_num:"Number", paint:"Paint it!", pop:"Pop it!", write:"Write word:", task:"Tasks", table:"Table", choose:"Choose number", yes:["Good job!"], no:["Try again"], find:"🔎 Find Words", find_p:"Find:" },
+        he: { jun_t:"קטנטנים", jun_d:"עד גיל 6", sen_t:"גדולים", sen_d:"עד גיל 10", sel_sub:"בחר נושא", l_let:"🔤 אותיות", l_math:"🧮 חשבון", map:"מפה", dict:"📖 מילים", hard:"קשה", p_let:"האות", p_num:"המספר", paint:"צייר!", pop:"פוצץ!", write:"כתוב מילה:", task:"תרגילים", table:"לוח הכפל", choose:"בחר מספר", yes:["כל הכבוד!"], no:["נסה שוב"], find:"🔎 מצא מילים", find_p:"מצא:" }
     };
 
     const DB = {
@@ -310,23 +351,23 @@
                 { l:'В', t:'В', s:'Вэ', ops:[{w:'Волк',i:'🐺'},{w:'Ведро',i:'🪣'},{w:'Вода',i:'💧'},{w:'Ваза',i:'🏺'},{w:'Вишня',i:'🍒'}] },
                 { l:'Г', t:'Г', s:'Гэ', ops:[{w:'Гриб',i:'🍄'},{w:'Груша',i:'🍐'},{w:'Гусь',i:'🪿'},{w:'Глаз',i:'👁️'},{w:'Гитара',i:'🎸'}] },
                 { l:'Д', t:'Д', s:'Дэ', ops:[{w:'Дом',i:'🏠'},{w:'Дед',i:'👴'},{w:'Дерево',i:'🌳'},{w:'Дыня',i:'🍈'},{w:'Дверь',i:'🚪'}] },
-                { l:'Е', t:'Е', s:'Е', ops:[{w:'Ель',i:'🌲'},{w:'Енот',i:'🦝'},{w:'Еда',i:'🥘'},{w:'Ежевика',i:'🫐'},{w:'Единорог',i:'🦄'}] },
+                { l:'Е', t:'Е', s:'Е', ops:[{w:'Ель',i:'🌲'},{w:'Енот',i:'🦝'},{w:'Еда',i:'🥘'},{w:'Ежевика',i:'🫐'}] },
                 { l:'Ё', t:'Ё', s:'Ё', ops:[{w:'Ёжик',i:'🦔'},{w:'Ёлка',i:'🎄'},{w:'Ёрш',i:'🐟'},{w:'Мёд',i:'🍯'},{w:'Лёд',i:'🧊'}] },
                 { l:'Ж', t:'Ж', s:'Жэ', ops:[{w:'Жук',i:'🪲'},{w:'Жираф',i:'🦒'},{w:'Жаба',i:'🐸'},{w:'Желудь',i:'🌰'},{w:'Жилет',i:'🦺'}] },
                 { l:'З', t:'З', s:'Зэ', ops:[{w:'Зонт',i:'☂️'},{w:'Заяц',i:'🐇'},{w:'Зебра',i:'🦓'},{w:'Звезда',i:'⭐'},{w:'Замок',i:'🏰'}] },
-                { l:'И', t:'И', s:'И', ops:[{w:'Игла',i:'🪡'},{w:'Индюк',i:'🦃'},{w:'Игрушка',i:'🧸'},{w:'Изба',i:'🏠'},{w:'Ирис',i:'🍬'}] },
+                { l:'И', t:'И', s:'И', ops:[{w:'Игла',i:'🪡'},{w:'Индюк',i:'🦃'},{w:'Ирис',i:'🍬'},{w:'Изба',i:'🏠'}] },
                 { l:'Й', t:'Й', s:'И краткое', ops:[{w:'Йогурт',i:'🥣'},{w:'Йод',i:'🧪'},{w:'Йог',i:'🧘'},{w:'Чай',i:'☕'},{w:'Майка',i:'🎽'}] },
                 { l:'К', t:'К', s:'Ка', ops:[{w:'Кот',i:'🐈'},{w:'Кит',i:'🐋'},{w:'Ключ',i:'🔑'},{w:'Книга',i:'📖'},{w:'Корова',i:'🐄'}] },
                 { l:'Л', t:'Л', s:'Эль', ops:[{w:'Лев',i:'🦁'},{w:'Лиса',i:'🦊'},{w:'Луна',i:'🌙'},{w:'Лимон',i:'🍋'},{w:'Лес',i:'🌲'}] },
                 { l:'М', t:'М', s:'Эм', ops:[{w:'Мяч',i:'⚽'},{w:'Мышь',i:'🐭'},{w:'Медведь',i:'🐻'},{w:'Машина',i:'🚗'},{w:'Муха',i:'🪰'}] },
                 { l:'Н', t:'Н', s:'Эн', ops:[{w:'Нож',i:'🔪'},{w:'Нос',i:'👃'},{w:'Носки',i:'🧦'},{w:'Носорог',i:'🦏'},{w:'Нитки',i:'🧵'}] },
-                { l:'О', t:'О', s:'О', ops:[{w:'Очки',i:'👓'},{w:'Облако',i:'☁️'},{w:'Овца',i:'🐑'},{w:'Огонь',i:'🔥'},{w:'Орех',i:'🥜'}] },
+                { l:'О', t:'О', s:'Буква О', ops:[{w:'Очки',i:'👓'},{w:'Облако',i:'☁️'},{w:'Овца',i:'🐑'},{w:'Огонь',i:'🔥'},{w:'Орех',i:'🥜'}] },
                 { l:'П', t:'П', s:'Пэ', ops:[{w:'Паук',i:'🕷️'},{w:'Панда',i:'🐼'},{w:'Пицца',i:'🍕'},{w:'Поезд',i:'🚂'},{w:'Птица',i:'🐦'}] },
                 { l:'Р', t:'Р', s:'Эр', ops:[{w:'Рак',i:'🦞'},{w:'Рыба',i:'🐟'},{w:'Роза',i:'🌹'},{w:'Рука',i:'✋'},{w:'Ракета',i:'🚀'}] },
                 { l:'С', t:'С', s:'Эс', ops:[{w:'Сыр',i:'🧀'},{w:'Слон',i:'🐘'},{w:'Солнце',i:'☀️'},{w:'Собака',i:'🐕'},{w:'Стол',i:'🪑'}] },
                 { l:'Т', t:'Т', s:'Тэ', ops:[{w:'Торт',i:'🎂'},{w:'Тигр',i:'🐅'},{w:'Тыква',i:'🎃'},{w:'Телефон',i:'📱'},{w:'Трактор',i:'🚜'}] },
                 { l:'У', t:'У', s:'У', ops:[{w:'Утка',i:'🦆'},{w:'Ухо',i:'👂'},{w:'Улитка',i:'🐌'},{w:'Утюг',i:'♨️'},{w:'Удочка',i:'🎣'}] },
-                { l:'Ф', t:'Ф', s:'Эф', ops:[{w:'Флаг',i:'🚩'},{w:'Фонарь',i:'🔦'},{w:'Фея',i:'🧚'},{w:'Фрукты',i:'🍎'},{w:'Фламинго',i:'🦩'}] },
+                { l:'Ф', t:'Ф', s:'Эф', ops:[{w:'Флаг',i:'🚩'},{w:'Фонарь',i:'🔦'},{w:'Филин',i:'🦉'},{w:'Фрукты',i:'🍎'},{w:'Фламинго',i:'🦩'}] },
                 { l:'Х', t:'Х', s:'Ха', ops:[{w:'Хлеб',i:'🍞'},{w:'Хомяк',i:'🐹'},{w:'Халат',i:'🥋'},{w:'Холодильник',i:'❄️'},{w:'Художник',i:'🎨'}] },
                 { l:'Ц', t:'Ц', s:'Цэ', ops:[{w:'Цветок',i:'🌸'},{w:'Цыпленок',i:'🐥'},{w:'Царь',i:'👑'},{w:'Цепь',i:'⛓️'},{w:'Цирк',i:'🎪'}] },
                 { l:'Ч', t:'Ч', s:'Че', ops:[{w:'Часы',i:'⏰'},{w:'Чашка',i:'☕'},{w:'Черепаха',i:'🐢'},{w:'Чеснок',i:'🧄'},{w:'Чайник',i:'🫖'}] },
@@ -354,7 +395,7 @@
                 { l:'B', t:'B', s:'Bee', ops:[{w:'Ball',i:'⚽'}, {w:'Bear',i:'🐻'}, {w:'Bat',i:'🦇'}, {w:'Bus',i:'🚌'}, {w:'Bed',i:'🛏️'}] },
                 { l:'C', t:'C', s:'Cee', ops:[{w:'Cat',i:'🐱'}, {w:'Car',i:'🚗'}, {w:'Cup',i:'☕'}, {w:'Cap',i:'🧢'}, {w:'Cake',i:'🍰'}] },
                 { l:'D', t:'D', s:'Dee', ops:[{w:'Dog',i:'🐶'}, {w:'Duck',i:'🦆'}, {w:'Doll',i:'🪆'}, {w:'Door',i:'🚪'}, {w:'Dad',i:'👨'}] },
-                { l:'E', t:'E', s:'E', ops:[{w:'Egg',i:'🥚'}, {w:'Eye',i:'👁️'}, {w:'Ear',i:'👂'}, {w:'Elf',i:'🧝'}, {w:'Earth',i:'🌍'}] },
+                { l:'E', t:'E', s:'E', ops:[{w:'Egg',i:'🥚'}, {w:'Eye',i:'👁️'}, {w:'Ear',i:'👂'}, {w:'Earth',i:'🌍'}] },
                 { l:'F', t:'F', s:'Eff', ops:[{w:'Fish',i:'🐟'}, {w:'Fan',i:'🪭'}, {w:'Fox',i:'🦊'}, {w:'Fire',i:'🔥'}, {w:'Frog',i:'🐸'}] },
                 { l:'G', t:'G', s:'Gee', ops:[{w:'Goat',i:'🐐'}, {w:'Gift',i:'🎁'}, {w:'Gum',i:'🍬'}, {w:'Girl',i:'👧'}, {w:'Gate',i:'⛩️'}] },
                 { l:'H', t:'H', s:'Aitch', ops:[{w:'Hat',i:'🎩'}, {w:'Hen',i:'🐔'}, {w:'Hand',i:'✋'}, {w:'House',i:'🏠'}, {w:'Horse',i:'🐎'}] },
@@ -434,16 +475,20 @@
 
         init: function() {
             const save = localStorage.getItem('alphaPro_v21');
-            if(save) { const d=JSON.parse(save); if(d.progress) this.progress=d.progress; if(d.lang) this.setLang(d.lang); }
+            if(save) { 
+                const d=JSON.parse(save); 
+                if(d.progress) this.progress=d.progress; 
+                // Ensure structure
+                if(!this.progress.junior.ru) this.progress.junior.ru={lvl:0,stars:[]};
+                if(d.lang) this.setLang(d.lang); 
+            }
             this.updateLoc();
-            this.go('view-roles'); // Force start screen
+            this.go('view-roles');
         },
         save: function() { localStorage.setItem('alphaPro_v21', JSON.stringify({progress:this.progress, lang:this.lang})); },
         go: function(id) { 
             document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden')); 
             document.getElementById(id).classList.remove('hidden'); 
-            
-            // HIDE LANGUAGE BUTTON IF NOT MAIN MENU
             if(id === 'view-roles') document.querySelector('.lang-btn').style.display = 'flex';
             else document.querySelector('.lang-btn').style.display = 'none';
         },
@@ -460,6 +505,7 @@
             document.getElementById('lbl-task-paint').innerText = t.paint; document.getElementById('lbl-task-pop').innerText = t.pop;
             document.getElementById('lbl-task-write').innerText = t.write;
             document.getElementById('lbl-find').innerText = t.find;
+            document.getElementById('lbl-task-find').innerText = t.find_p;
             document.querySelectorAll('.lbl-tasks').forEach(e=>e.innerText=t.task); document.querySelector('.lbl-table').innerText = t.table;
             document.getElementById('lbl-choose-num').innerText = t.choose; document.getElementById('lbl-hard').innerText = t.hard;
         },
@@ -470,6 +516,12 @@
 
         renderMap: function() {
             const container = document.getElementById('map-container'); container.innerHTML = '';
+            
+            // Philwords button logic
+            const philBtn = document.getElementById('btn-philwords');
+            if(this.profile === 'junior' && !this.isMathMode) philBtn.style.display = 'none';
+            else philBtn.style.display = 'flex';
+
             let list, current, starsArr;
             if(this.isMathMode && this.profile === 'junior') {
                 list = DB[this.lang].numbers;
@@ -507,7 +559,7 @@
                 if(this.profile === 'junior') {
                     this.speak(TRANS[this.lang].p_let + " " + this.currData.ls);
                     const step = idx % 3;
-                    if(step===0) this.startJuniorPaint(); else if(step===1) this.startJuniorPuzzle(); else this.startJuniorBubbles();
+                    if(step===0) this.startJuniorPaint(); else if(step===1) this.startJuniorPuzzle(); else this.startJuniorFind();
                 } else {
                     this.startSenior();
                 }
@@ -567,7 +619,7 @@
             this.finishLevel(3);
         },
 
-        // --- JUNIOR PUZZLE (FIXED) ---
+        // --- JUNIOR PUZZLE ---
         startJuniorPuzzle: function() {
             this.go('view-game-jun-puzzle');
             document.getElementById('puz-letter').innerText = this.currData.l;
@@ -576,43 +628,25 @@
             const pCanvas = document.createElement('canvas');
             pCanvas.width = 300; pCanvas.height = 300;
             const ctx = pCanvas.getContext('2d');
-
-            // 1. Background gradient
             const grd = ctx.createLinearGradient(0,0,300,300);
             grd.addColorStop(0, '#FFF'); grd.addColorStop(1, '#B3E5FC');
             ctx.fillStyle = grd; ctx.fillRect(0,0,300,300);
             
-            // 2. FORCE UNIQUE PIECES: COLOR CODED NUMBERS
-            // 1(Red), 2(Blue), 3(Green), 4(Purple), 5(Orange), 6(Teal)
-            const nums = [
-                {t:'1', c:'#F44336', x:75, y:50}, {t:'2', c:'#2196F3', x:225, y:50},
-                {t:'3', c:'#4CAF50', x:75, y:150}, {t:'4', c:'#9C27B0', x:225, y:150},
-                {t:'5', c:'#FF9800', x:75, y:250}, {t:'6', c:'#009688', x:225, y:250}
-            ];
-
-            ctx.font = "bold 80px Arial";
-            ctx.textBaseline="middle"; ctx.textAlign="center";
-            
-            nums.forEach(n => {
-                ctx.fillStyle = n.c;
-                ctx.fillText(n.t, n.x, n.y);
-            });
-
-            // 3. Draw Emoji/Text
             ctx.fillStyle='#000'; 
             if(this.isMathMode) {
                 const emojis = this.currData.i; ctx.font = '50px Arial';
+                ctx.textAlign="center"; ctx.textBaseline="middle";
                 if(emojis.length > 5) { ctx.fillText(emojis.substring(0,5), 150, 120); ctx.fillText(emojis.substring(5), 150, 180); } 
                 else { ctx.fillText(emojis, 150, 150); }
             } else {
-                ctx.font = '150px Arial'; ctx.fillText(this.currData.i, 150, 150);
+                ctx.font = '150px Arial'; 
+                ctx.textAlign="center"; ctx.textBaseline="middle";
+                ctx.fillText(this.currData.i, 150, 150);
             }
             const imgData = pCanvas.toDataURL();
             
             this.puzzlePieces = [];
             for(let i=0; i<6; i++) this.puzzlePieces.push({id: i, currentPos: i});
-            
-            // Shuffle
             for(let i=0; i<15; i++) {
                 const a = Math.floor(Math.random()*6); const b = Math.floor(Math.random()*6);
                 const temp = this.puzzlePieces[a].currentPos;
@@ -625,22 +659,16 @@
         renderPuzzle: function(imgData) {
             const cont = document.getElementById('jun-puzzle-cont'); cont.innerHTML = '';
             for(let k=0; k<6; k++) {
-                // k is the visual slot index 0..5
                 const pieceObj = this.puzzlePieces.find(p => p.currentPos === k);
                 const div = document.createElement('div'); div.className = 'puzzle-piece';
                 div.style.backgroundImage = `url(${imgData})`;
-                
                 const correctCol = pieceObj.id % 2; 
                 const correctRow = Math.floor(pieceObj.id / 2);
                 div.style.backgroundPosition = `-${correctCol*150}px -${correctRow*100}px`;
                 div.style.backgroundSize = "300px 300px";
-                
                 if(this.selectedPiece === k) div.classList.add('selected');
-                
-                // VISUAL CUE: Green border if correct
                 if(pieceObj.id === k) div.classList.add('correct-pos');
                 else if(this.checkFailed) div.classList.add('error');
-
                 div.onclick = () => this.handlePuzzleClick(k, imgData);
                 cont.appendChild(div);
             }
@@ -673,13 +701,51 @@
             }
         },
 
-        // --- JUNIOR BUBBLES (WITH TIMER) ---
+        // --- JUNIOR FIND PICTURE ---
+        startJuniorFind: function() {
+            this.go('view-game-jun-find');
+            document.getElementById('find-letter').innerText = this.currData.l;
+            
+            const grid = document.getElementById('find-grid'); grid.innerHTML = '';
+            
+            // 1 Correct
+            const correctObj = { i: this.currData.i, correct: true };
+            // 3 Wrong
+            const all = DB[this.lang].letters;
+            let wrongs = [];
+            while(wrongs.length < 3) {
+                const rL = all[Math.floor(Math.random() * all.length)];
+                if(rL.l !== this.currData.l) {
+                    const rOp = rL.ops[Math.floor(Math.random() * rL.ops.length)];
+                    if(!wrongs.some(w=>w.i===rOp.i)) wrongs.push({ i: rOp.i, correct: false });
+                }
+            }
+            
+            let options = [correctObj, ...wrongs];
+            options.sort(() => Math.random() - 0.5);
+            
+            options.forEach(opt => {
+                const card = document.createElement('div'); card.className = 'find-card';
+                card.innerText = opt.i;
+                card.onclick = () => {
+                    if(opt.correct) {
+                        card.classList.add('correct');
+                        playWinSound();
+                        setTimeout(() => this.finishLevel(3), 500);
+                    } else {
+                        playLoseSound();
+                        card.classList.add('wrong');
+                    }
+                };
+                grid.appendChild(card);
+            });
+        },
+
+        // --- JUNIOR BUBBLES ---
         startJuniorBubbles: function() {
             this.go('view-game-jun-bubbles');
             document.getElementById('bub-target-emoji').innerText = this.currData.l;
             document.getElementById('bubbles-container').innerHTML = '';
-            
-            // TIMER LOGIC
             const bar = document.getElementById('bub-timer-bar'); bar.style.width='100%';
             let timeLeft = 15;
             this.timer = setInterval(() => {
@@ -690,7 +756,6 @@
                      this.finishLevel(3);
                 }
             }, 100);
-
             this.bubTimer = setInterval(()=>{
                 const b = document.createElement('div'); b.className='bubble';
                 const correct = Math.random()>0.5;
@@ -707,151 +772,10 @@
             }, 900);
         },
 
-        // --- PHILWORDS (FIND WORDS) ---
-        showPhilwordMenu: function() {
-            const container = document.getElementById('phil-menu-container'); container.innerHTML = '';
-            // Change: Use ALL letters, not just user level
-            const list = DB[this.lang].letters;
-            
-            for(let i=0; i<list.length; i++) {
-                const node = document.createElement('div'); node.className = 'level-node unlocked';
-                node.innerText = list[i].l;
-                node.onclick = () => this.startPhilword(i);
-                container.appendChild(node);
-            }
-            this.go('view-phil-menu');
-        },
-        
-        startPhilword: function(letterIdx) {
-            this.go('view-game-phil');
-            const lData = DB[this.lang].letters[letterIdx];
-            document.getElementById('phil-letter-big').innerText = lData.l;
-            
-            // USE ALL 5 WORDS
-            let targetWords = lData.ops.map(o => o.w.toUpperCase());
-            this.philWords = targetWords;
-            this.philFound = 0;
-            this.philSelected = [];
-
-            // Render Targets
-            const tCont = document.getElementById('phil-targets'); tCont.innerHTML='';
-            targetWords.forEach(w => {
-                const tag = document.createElement('div'); tag.className='phil-word-tag'; tag.innerText = w; tag.id='ph-tag-'+w;
-                tCont.appendChild(tag);
-            });
-
-            // Generate Grid 10x10
-            const size = 10;
-            let grid = new Array(size*size).fill('');
-            // Use alphabet for the CURRENT language only
-            let alphabet = "";
-            if(this.lang === 'ru') alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
-            else if(this.lang === 'en') alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            else alphabet = "אבגדהוזחטיכלמנסעפצקרשת";
-
-            // Place Words
-            targetWords.forEach(word => {
-                let placed = false;
-                let attempts = 0;
-                while(!placed && attempts < 100) {
-                    attempts++;
-                    const dir = Math.random() > 0.5 ? 'h' : 'v';
-                    const r = Math.floor(Math.random() * size);
-                    const c = Math.floor(Math.random() * size);
-                    
-                    if(dir === 'h' && c + word.length > size) continue;
-                    if(dir === 'v' && r + word.length > size) continue;
-
-                    let fit = true;
-                    for(let k=0; k<word.length; k++) {
-                        const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
-                        if(grid[idx] !== '' && grid[idx] !== word[k]) fit = false;
-                    }
-                    
-                    if(fit) {
-                        for(let k=0; k<word.length; k++) {
-                            const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
-                            grid[idx] = word[k];
-                        }
-                        placed = true;
-                    }
-                }
-            });
-
-            // Fill empty
-            for(let i=0; i<grid.length; i++) {
-                if(grid[i] === '') grid[i] = alphabet[Math.floor(Math.random() * alphabet.length)];
-            }
-
-            // Render Grid
-            const gDiv = document.getElementById('phil-grid'); gDiv.innerHTML = '';
-            grid.forEach((char, i) => {
-                const cell = document.createElement('div'); cell.className = 'phil-cell'; cell.innerText = char;
-                cell.dataset.idx = i;
-                cell.onclick = () => this.handlePhilClick(cell, i, size, grid);
-                gDiv.appendChild(cell);
-            });
-        },
-
-        handlePhilClick: function(cell, idx, size, gridArray) {
-            if(cell.classList.contains('found')) return;
-            
-            if(cell.classList.contains('selected')) {
-                cell.classList.remove('selected');
-                this.philSelected = this.philSelected.filter(i => i !== idx);
-            } else {
-                cell.classList.add('selected');
-                this.philSelected.push(idx);
-            }
-
-            this.philSelected.sort((a,b) => a-b);
-            const selectedStr = this.philSelected.map(i => gridArray[i]).join('');
-            const revStr = selectedStr.split('').reverse().join('');
-
-            let match = this.philWords.find(w => w === selectedStr || w === revStr);
-            
-            if(match) {
-                const isLine = this.checkLinearity(this.philSelected, size);
-                if(isLine) {
-                    playWinSound();
-                    this.philSelected.forEach(i => {
-                        const c = document.querySelector(`.phil-cell[data-idx="${i}"]`);
-                        c.classList.remove('selected'); c.classList.add('found');
-                    });
-                    document.getElementById('ph-tag-'+match).classList.add('done');
-                    this.philWords = this.philWords.filter(w => w !== match);
-                    this.philSelected = [];
-                    
-                    if(this.philWords.length === 0) {
-                        fireConfetti();
-                        setTimeout(() => this.go('view-phil-menu'), 2000);
-                    }
-                }
-            }
-        },
-
-        checkLinearity: function(indices, size) {
-            if(indices.length < 2) return false;
-            const row0 = Math.floor(indices[0]/size);
-            const isHoriz = indices.every(i => Math.floor(i/size) === row0);
-            if(isHoriz) {
-                for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+1) return false;
-                return true;
-            }
-            const col0 = indices[0] % size;
-            const isVert = indices.every(i => i % size === col0);
-            if(isVert) {
-                for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+size) return false;
-                return true;
-            }
-            return false;
-        },
-
         // --- SENIOR SPELL ---
         startSenior: function() {
             this.go('view-game-senior');
             document.getElementById('sen-img').innerText = this.currData.i;
-            document.getElementById('btn-sen-check').disabled = false;
             this.senTarget = this.currData.w; 
             this.senTargetSpeech = this.currData.s || this.currData.w;
             this.senCurrent = [];
@@ -865,8 +789,16 @@
             const c = document.getElementById('sen-pool'); c.innerHTML='';
             let pool = this.senTarget.split('');
             if(this.isHardMode) { const a = DB[this.lang].letters.map(x=>x.l).join(''); for(let k=0;k<5;k++) pool.push(a[Math.floor(Math.random()*a.length)]); }
-            let arr = pool.map((ch,i)=>({c:ch, id:'ch'+i})); arr.sort(()=>Math.random()-0.5);
-            arr.forEach(x=>{ let b=document.createElement('div'); b.className='letter-chip'; b.id=x.id; b.innerText=x.c; b.onclick=()=>this.addLetter(x); c.appendChild(b); });
+            let arr = pool.map((ch,i)=>({c:ch, id:'ch'+i, used:false}));
+            arr.sort(()=>Math.random()-0.5);
+            this.senPoolArr = arr; // Store reference
+            
+            this.senPoolArr.forEach(x=>{ 
+                let b=document.createElement('div'); b.className='letter-chip'; 
+                b.id=x.id; b.innerText=x.c; 
+                b.onclick=()=>this.addLetter(x); 
+                c.appendChild(b); 
+            });
         },
         renderSlots: function() {
             const c=document.getElementById('sen-slots'); c.innerHTML='';
@@ -877,10 +809,19 @@
             }
         },
         addLetter: function(x) {
-            if(this.senCurrent.length < this.senTarget.length) { this.senCurrent.push(x); document.getElementById(x.id).style.display='none'; this.renderSlots(); playTone(400,'sine',0.05); }
+            if(this.senCurrent.length < this.senTarget.length) { 
+                this.senCurrent.push(x); 
+                document.getElementById(x.id).classList.add('used'); // Just fade out, don't move layout
+                this.renderSlots(); playTone(400,'sine',0.05); 
+                // Auto check if full
+                if(this.senCurrent.length === this.senTarget.length) setTimeout(()=>this.checkSenior(), 500);
+            }
         },
         removeLetter: function(i) {
-            let x=this.senCurrent[i]; this.senCurrent.splice(i,1); document.getElementById(x.id).style.display='block'; this.renderSlots();
+            let x=this.senCurrent[i]; 
+            this.senCurrent.splice(i,1); 
+            document.getElementById(x.id).classList.remove('used'); 
+            this.renderSlots();
         },
         checkSenior: function() {
             const ans = this.senCurrent.map(x=>x.c).join('');
@@ -891,8 +832,114 @@
                 this.finishLevel(stars);
             } else {
                 playLoseSound(); document.querySelectorAll('.slot').forEach(s=>s.classList.add('wrong'));
-                setTimeout(()=>{ this.senCurrent.forEach(x=>document.getElementById(x.id).style.display='block'); this.senCurrent=[]; this.renderSlots(); },1000);
+                setTimeout(()=>{ 
+                    this.senCurrent.forEach(x=>document.getElementById(x.id).classList.remove('used')); 
+                    this.senCurrent=[]; 
+                    this.renderSlots(); 
+                }, 1000);
             }
+        },
+
+        // --- PHILWORDS ---
+        showPhilwordMenu: function() {
+            const container = document.getElementById('phil-menu-container'); container.innerHTML = '';
+            const list = DB[this.lang].letters;
+            for(let i=0; i<list.length; i++) {
+                const node = document.createElement('div'); node.className = 'level-node unlocked';
+                node.innerText = list[i].l;
+                node.onclick = () => this.startPhilword(i);
+                container.appendChild(node);
+            }
+            this.go('view-phil-menu');
+        },
+        startPhilword: function(letterIdx) {
+            this.go('view-game-phil');
+            const lData = DB[this.lang].letters[letterIdx];
+            document.getElementById('phil-letter-big').innerText = lData.l;
+            let targetWords = lData.ops.map(o => o.w.toUpperCase());
+            this.philWords = targetWords;
+            this.philFound = 0;
+            this.philSelected = [];
+            const tCont = document.getElementById('phil-targets'); tCont.innerHTML='';
+            targetWords.forEach(w => {
+                const tag = document.createElement('div'); tag.className='phil-word-tag'; tag.innerText = w; tag.id='ph-tag-'+w;
+                tCont.appendChild(tag);
+            });
+            const size = 10;
+            let grid = new Array(size*size).fill('');
+            let alphabet = "";
+            if(this.lang === 'ru') alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+            else if(this.lang === 'en') alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            else alphabet = "אבגדהוזחטיכלמנסעפצקרשת";
+            targetWords.forEach(word => {
+                let placed = false, attempts = 0;
+                while(!placed && attempts < 100) {
+                    attempts++;
+                    const dir = Math.random() > 0.5 ? 'h' : 'v';
+                    const r = Math.floor(Math.random() * size);
+                    const c = Math.floor(Math.random() * size);
+                    if(dir === 'h' && c + word.length > size) continue;
+                    if(dir === 'v' && r + word.length > size) continue;
+                    let fit = true;
+                    for(let k=0; k<word.length; k++) {
+                        const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
+                        if(grid[idx] !== '' && grid[idx] !== word[k]) fit = false;
+                    }
+                    if(fit) {
+                        for(let k=0; k<word.length; k++) {
+                            const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
+                            grid[idx] = word[k];
+                        }
+                        placed = true;
+                    }
+                }
+            });
+            for(let i=0; i<grid.length; i++) if(grid[i] === '') grid[i] = alphabet[Math.floor(Math.random() * alphabet.length)];
+            const gDiv = document.getElementById('phil-grid'); gDiv.innerHTML = '';
+            grid.forEach((char, i) => {
+                const cell = document.createElement('div'); cell.className = 'phil-cell'; cell.innerText = char;
+                cell.dataset.idx = i;
+                cell.onclick = () => this.handlePhilClick(cell, i, size, grid);
+                gDiv.appendChild(cell);
+            });
+        },
+        handlePhilClick: function(cell, idx, size, gridArray) {
+            if(cell.classList.contains('found')) return;
+            if(cell.classList.contains('selected')) {
+                cell.classList.remove('selected');
+                this.philSelected = this.philSelected.filter(i => i !== idx);
+            } else {
+                cell.classList.add('selected');
+                this.philSelected.push(idx);
+            }
+            this.philSelected.sort((a,b) => a-b);
+            const selectedStr = this.philSelected.map(i => gridArray[i]).join('');
+            const revStr = selectedStr.split('').reverse().join('');
+            let match = this.philWords.find(w => w === selectedStr || w === revStr);
+            if(match) {
+                const isLine = this.checkLinearity(this.philSelected, size);
+                if(isLine) {
+                    playWinSound();
+                    this.philSelected.forEach(i => {
+                        const c = document.querySelector(`.phil-cell[data-idx="${i}"]`);
+                        c.classList.remove('selected'); c.classList.add('found');
+                    });
+                    document.getElementById('ph-tag-'+match).classList.add('done');
+                    this.philWords = this.philWords.filter(w => w !== match);
+                    this.philSelected = [];
+                    if(this.philWords.length === 0) { fireConfetti(); setTimeout(() => this.go('view-phil-menu'), 2000); }
+                }
+            }
+        },
+        checkLinearity: function(indices, size) {
+            if(indices.length < 2) return false;
+            const row0 = Math.floor(indices[0]/size);
+            const isHoriz = indices.every(i => Math.floor(i/size) === row0);
+            if(isHoriz) { for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+1) return false; return true; }
+            const col0 = indices[0] % size;
+            const isVert = indices.every(i => i % size === col0);
+            if(isVert) { for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+size) return false; return true; }
+            return false;
         },
 
         // --- MATH ---
