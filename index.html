@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AlphaFamily v24 (Puzzle Fix & Full Philwords)</title>
+    <meta name="theme-color" content="#FFC107">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --primary: #FFC107; --accent: #FF5722; --blue: #29B6F6;
+            --green: #66BB6A; --red: #EF5350; --purple: #AB47BC;
+            --text: #37474F; --font: 'Segoe UI', Tahoma, sans-serif;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
+        body { 
+            margin: 0; padding: 0; font-family: var(--font); color: var(--text); 
+            height: 100vh; overflow: hidden;
+            background: linear-gradient(135deg, #FFFDE7 0%, #E0F7FA 100%);
+        }
+
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 15px; transition: opacity 0.3s;
+            overflow-y: auto; z-index: 10;
+        }
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+        .center-content { justify-content: center; }
+
+        /* BUTTONS */
+        .btn {
+            background: white; border: none; border-radius: 50px;
+            padding: 12px 25px; font-size: 1.2rem; font-weight: bold;
+            color: var(--text); margin: 6px; cursor: pointer;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.15); width: 90%; max-width: 320px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: none; }
+        .btn-green { background: var(--green); color: white; }
+        .btn-blue { background: var(--blue); color: white; }
+        .btn-purple { background: var(--purple); color: white; }
+        .btn-orange { background: var(--accent); color: white; }
+        .btn-cyan { background: #00BCD4; color: white; }
+        .btn-home { position: fixed; top: 15px; left: 15px; width: 45px; height: 45px; border-radius: 50%; padding: 0; z-index: 90; background: white; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border:none; }
+        .lang-btn { position: fixed; top: 15px; right: 15px; z-index: 100; background: white; border: 2px solid #ddd; border-radius: 50%; width: 50px; height: 50px; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-repeat { width: 50px; height: 50px; border-radius: 50%; background: white; color: var(--blue); font-size: 1.5rem; padding: 0; box-shadow: 0 4px 0 #ccc; border: 2px solid #eee; }
+
+        /* MENU */
+        .role-btn { background: white; padding: 30px; border-radius: 30px; width: 280px; text-align: center; margin: 15px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 3px solid white; transition: transform 0.1s; }
+        .role-btn:active { transform: scale(0.95); }
+        .role-icon { font-size: 5rem; display: block; margin-bottom: 10px; }
+        .role-title { font-size: 1.5rem; font-weight: bold; }
+        .role-desc { font-size: 1rem; color: #888; }
+
+        /* MAP */
+        .map-header { margin-top: 80px; width: 100%; text-align: center; margin-bottom: 10px; }
+        .map-path { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px 10px 100px 10px; width: 100%; }
+        .level-node { width: 65px; height: 65px; border-radius: 50%; background: rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: bold; color: #78909C; position: relative; border: 3px solid rgba(255,255,255,0.8); margin-top: 15px; }
+        .level-node.unlocked { background: var(--blue); color: white; transform: scale(1.1); box-shadow: 0 8px 20px rgba(41, 182, 246, 0.4); border:none; }
+        .level-node.completed { background: var(--green); color: white; border:none; }
+        .level-node.locked::after { content: '🔒'; position: absolute; font-size: 0.9rem; bottom: 0; right: 0; }
+        .level-stars { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; }
+        .tiny-star { font-size: 12px; color: #D0D0D0; } .tiny-star.gold { color: #FFD700; }
+
+        /* GAME AREA */
+        .game-area { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; max-width: 450px; height: 100%; padding-top: 80px; padding-bottom: 20px; }
+        .word-emoji { font-size: 5rem; display: block; margin: 5px 0; animation: popIn 0.5s; }
+        .instruction { font-size: 1.1rem; color: #333; background: white; padding: 5px 20px; border-radius: 20px; text-align: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        /* PUZZLE */
+        .puzzle-text-top { font-size: 3rem; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
+        .puzzle-text-bot { font-size: 2rem; font-weight: bold; color: #333; margin-top: 5px; }
+        .puzzle-container { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); gap: 2px; width: 300px; height: 300px; margin: 5px auto; background: #eee; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .puzzle-piece { background-repeat: no-repeat; background-size: 300px 300px; cursor: pointer; transition: transform 0.2s, border 0.2s; border: 1px solid rgba(255,255,255,0.5); }
+        .puzzle-piece.selected { border: 3px solid var(--accent); transform: scale(0.95); z-index: 10; box-shadow: 0 0 15px var(--accent); }
+        /* Зеленая рамка если на правильном месте */
+        .puzzle-piece.correct-pos { border: 3px solid #66BB6A; } 
+        .puzzle-piece.error { border: 3px solid red; }
+
+        /* PAINT */
+        #magic-canvas { width: 300px; height: 300px; background: white; border-radius: 20px; border: 4px solid var(--accent); touch-action: none; }
+        .palette { display: flex; gap: 10px; margin-top: 10px; }
+        .color-swatch { width: 35px; height: 35px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
+        .color-swatch.active { transform: scale(1.2); border-color: #333; }
+
+        /* BUBBLES */
+        #bubbles-container { width: 100%; height: 350px; position: relative; overflow: hidden; background: rgba(255,255,255,0.3); border-radius: 20px; border: 2px dashed rgba(0,0,0,0.1); }
+        .bubble { position: absolute; width: 70px; height: 70px; background: radial-gradient(circle at 30% 30%, white, #E1F5FE); border-radius: 50%; border: 2px solid #B3E5FC; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; color: var(--blue); cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .bubble.pop { transform: scale(1.5); opacity: 0; transition: all 0.2s; }
+        .timer-wrap { width: 100%; height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; margin-bottom: 10px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--accent); width: 100%; transition: width 0.1s linear; }
+
+        /* PHILWORDS (WORD SEARCH) */
+        .phil-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; width: 100%; max-width: 360px; margin: 10px auto; direction: ltr; }
+        .phil-cell { aspect-ratio: 1; background: white; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.0rem; cursor: pointer; box-shadow: 0 1px 0 #ddd; border: 1px solid #eee; }
+        .phil-cell.selected { background: var(--blue); color: white; transform: scale(0.95); }
+        .phil-cell.found { background: var(--green); color: white; animation: popIn 0.3s; }
+        .phil-targets { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 10px; }
+        .phil-word-tag { padding: 4px 8px; background: white; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; font-size: 0.9rem; }
+        .phil-word-tag.done { background: var(--green); color: white; text-decoration: line-through; }
+
+        /* SENIOR & MATH */
+        .math-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 400px; }
+        .math-card { background: white; padding: 15px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.1); font-weight: bold; }
+        .math-problem { font-size: 2.5rem; font-weight: bold; background: white; padding: 15px 30px; border-radius: 20px; margin-bottom: 20px; direction: ltr !important; unicode-bidi: bidi-override; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; }
+        .num-btn { background: white; border: none; padding: 15px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 0 #ddd; direction: ltr; }
+        .slot-container { display: flex; gap: 6px; justify-content: center; margin: 15px 0; min-height: 55px; flex-wrap: wrap; }
+        .slot { width: 50px; height: 50px; border-bottom: 4px solid #90A4AE; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; background: rgba(255,255,255,0.8); border-radius: 8px 8px 0 0; }
+        .slot.filled { border-bottom-color: var(--blue); background: white; }
+        .slot.correct { border-bottom-color: var(--green); background: #E8F5E9; }
+        .slot.wrong { border-bottom-color: var(--red); }
+        .pool-container { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .letter-chip { background: white; padding: 12px 18px; border-radius: 12px; font-weight: bold; font-size: 1.6rem; box-shadow: 0 4px 0 #CFD8DC; cursor: pointer; border: 1px solid #ECEFF1; }
+        .difficulty-toggle { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.6); padding: 8px 15px; border-radius: 20px; margin-bottom: 5px; font-weight: bold; }
+
+        .dict-list { width: 100%; max-width: 500px; margin-top: 20px; padding-bottom: 50px; }
+        .dict-item { background: white; padding: 12px 20px; margin: 10px 0; border-radius: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .table-display-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 400px; max-height: 60vh; overflow-y: auto; direction: ltr; }
+        .table-cell { background: white; padding: 5px; border-radius: 5px; text-align: center; font-size: 0.9rem; box-shadow: 0 2px 0 #eee; }
+
+        #confetti { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 100; width: 100%; height: 100%; }
+        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        [dir="rtl"] .btn-home { right: 15px; left: auto; } [dir="rtl"] .btn { flex-direction: row-reverse; }
+        [dir="rtl"] .lang-btn { left: 15px; right: auto; }
+        [dir="rtl"] .letter-chip { direction: rtl; }
+    </style>
+</head>
+<body>
+    <canvas id="confetti"></canvas>
+
+    <!-- GLOBAL HEADER (Button is managed by JS to hide/show) -->
+    <button class="lang-btn" onclick="app.toggleLang()">🇷🇺</button>
+
+    <!-- 1. MAIN MENU -->
+    <div id="view-roles" class="screen center-content">
+        <h1 style="color:var(--accent); font-size: 2.5rem; margin-bottom: 40px;">AlphaFamily</h1>
+        <div class="role-btn" onclick="app.setProfile('junior')">
+            <span class="role-icon">👶</span>
+            <div class="role-title" id="lbl-jun-title">Малыши</div>
+            <div class="role-desc" id="lbl-jun-desc">до 6 лет</div>
+        </div>
+        <div class="role-btn" onclick="app.setProfile('senior')">
+            <span class="role-icon">🚀</span>
+            <div class="role-title" id="lbl-sen-title">Старшие</div>
+            <div class="role-desc" id="lbl-sen-desc">до 10 лет</div>
+        </div>
+    </div>
+
+    <!-- 2. SENIOR SUB-MENU -->
+    <div id="view-senior-menu" class="screen center-content hidden">
+        <button class="btn btn-home" onclick="app.go('view-roles')">🏠</button>
+        <h2 id="lbl-select-subj">Выбери предмет:</h2>
+        <div style="height:30px"></div>
+        <button class="btn btn-blue" onclick="app.startSeniorLetters()"><span id="lbl-letters">🔤 Буквы</span></button>
+        <button class="btn btn-orange" onclick="app.goToMathMenu()"><span id="lbl-math">🧮 Математика</span></button>
+    </div>
+
+    <!-- 3. MAP -->
+    <div id="view-map" class="screen hidden">
+        <button class="btn btn-home" onclick="app.goBackFromMap()">🏠</button>
+        <div class="map-header"><span class="instruction" id="lbl-map">Карта</span></div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn btn-purple" style="width:auto;" onclick="app.showDictionary()"><span id="lbl-dict">📖 Словарь</span></button>
+            <button class="btn btn-cyan" style="width:auto;" onclick="app.showPhilwordMenu()"><span id="lbl-find">🔎 Найди слова</span></button>
+        </div>
+        <div class="map-path" id="map-container"></div>
+    </div>
+
+    <!-- 4. DICTIONARY -->
+    <div id="view-dict" class="screen hidden">
+        <button class="btn btn-home" onclick="app.go('view-map')">❌</button>
+        <h2 style="margin-top: 80px;" id="lbl-dict-title">Словарь</h2>
+        <div class="dict-list" id="dict-container"></div>
+    </div>
+
+    <!-- 4.5 PHILWORD MENU -->
+    <div id="view-phil-menu" class="screen hidden">
+        <button class="btn btn-home" onclick="app.go('view-map')">❌</button>
+        <h2 style="margin-top: 80px;" id="lbl-phil-title">Найди слова</h2>
+        <div class="map-path" id="phil-menu-container"></div>
+    </div>
+    <!-- 4.6 PHILWORD GAME -->
+    <div id="view-game-phil" class="screen hidden">
+        <button class="btn btn-home" onclick="app.go('view-phil-menu')">❌</button>
+        <div class="game-area">
+            <div>
+                <div class="puzzle-text-bot" id="phil-letter-big">A</div>
+                <div class="phil-targets" id="phil-targets"></div>
+            </div>
+            <div class="phil-grid" id="phil-grid"></div>
+            <div class="instruction" id="lbl-phil-hint">Нажми на буквы</div>
+        </div>
+    </div>
+
+    <!-- 5. JUNIOR: PAINT -->
+    <div id="view-game-jun-paint" class="screen hidden">
+        <button class="btn btn-home" onclick="app.goBackFromGame()">❌</button>
+        <div class="game-area">
+            <div>
+                <div class="word-emoji" id="jun-img">🍎</div>
+                <div class="quant-display" id="jun-quant"></div>
+                <div class="instruction" id="lbl-task-paint">Раскрась!</div>
+            </div>
+            <canvas id="magic-canvas" width="300" height="300"></canvas>
+            <div class="palette">
+                <div class="color-swatch active" style="background:#2196F3" onclick="app.setColor('#2196F3',this)"></div>
+                <div class="color-swatch" style="background:#F44336" onclick="app.setColor('#F44336',this)"></div>
+                <div class="color-swatch" style="background:#4CAF50" onclick="app.setColor('#4CAF50',this)"></div>
+                <div class="color-swatch" style="background:#FFEB3B" onclick="app.setColor('#FFEB3B',this)"></div>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
+                <button class="btn btn-green" id="btn-jun-check" onclick="app.checkJuniorPaint()">✔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. JUNIOR: PUZZLE -->
+    <div id="view-game-jun-puzzle" class="screen hidden">
+        <button class="btn btn-home" onclick="app.goBackFromGame()">❌</button>
+        <div class="game-area">
+            <div class="puzzle-text-top" id="puz-letter">A</div>
+            <div class="puzzle-container" id="jun-puzzle-cont"></div>
+            <div class="puzzle-text-bot" id="puz-word">Word</div>
+            
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
+                <button class="btn btn-green" id="btn-jun-puzzle-check" onclick="app.checkJuniorPuzzle(true)">✔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. JUNIOR: BUBBLES -->
+    <div id="view-game-jun-bubbles" class="screen hidden">
+        <button class="btn btn-home" onclick="app.goBackFromGame()">❌</button>
+        <div class="game-area">
+            <div style="width:100%; text-align:center;">
+                <div class="timer-wrap"><div id="bub-timer-bar" class="timer-bar"></div></div>
+                <div class="word-emoji" id="bub-target-emoji">1</div>
+                <div class="instruction" id="lbl-task-pop">Лопай!</div>
+            </div>
+            <div id="bubbles-container"></div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-repeat" onclick="app.speakTarget()">🔊</button>
+                <button class="btn btn-green" onclick="app.finishLevel(3)">➜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. SENIOR: SPELL -->
+    <div id="view-game-senior" class="screen hidden">
+        <button class="btn btn-home" onclick="app.go('view-map')">❌</button>
+        <div class="timer-wrap"><div id="timer-bar" class="timer-bar"></div></div>
+        <div class="game-area" style="justify-content: flex-start;">
+            <div style="display:flex; align-items:center; flex-direction:column;">
+                <div class="word-emoji" id="sen-img">🍎</div>
+                <label class="difficulty-toggle"><input type="checkbox" id="chk-hardmode" onchange="app.toggleHardMode()"> 💀 <span id="lbl-hard">Сложно</span></label>
+            </div>
+            
+            <div class="instruction" id="lbl-task-write">Напиши слово:</div>
+            <div class="slot-container" id="sen-slots"></div>
+            <div class="pool-container" id="sen-pool"></div>
+            <div style="margin-top: auto; width: 100%; display:flex; flex-direction:column; align-items:center;">
+                <button class="btn btn-blue" onclick="app.speakCurrentWord()">🔊</button>
+                <button class="btn btn-green" id="btn-sen-check" onclick="app.checkSenior()">✔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. MATH -->
+    <div id="view-math-menu" class="screen center-content hidden">
+        <button class="btn btn-home" onclick="app.goBackFromMathMenu()">🏠</button>
+        <h2 id="lbl-math-title">Математика</h2>
+        <div class="math-menu-grid">
+            <div class="math-card" onclick="app.startMathGame('add', 100)">➕ 1 - 100</div>
+            <div class="math-card" onclick="app.startMathGame('sub', 100)">➖ 1 - 100</div>
+            <div class="math-card" onclick="app.startMathGame('add', 1000)">➕ 100 - 1000</div>
+            <div class="math-card" onclick="app.startMathGame('sub', 1000)">➖ 100 - 1000</div>
+            <div class="math-card" onclick="app.startMathGame('mult', 10)">✖️ <span class="lbl-tasks">Задания</span></div>
+            <div class="math-card" onclick="app.startMathGame('div', 10)">➗ <span class="lbl-tasks">Задания</span></div>
+            <div class="math-card" onclick="app.showMathTables()">📜 <span class="lbl-table">Таблица</span></div>
+        </div>
+    </div>
+    <div id="view-math-tables" class="screen center-content hidden">
+        <button class="btn btn-home" onclick="app.go('view-math-menu')">⬅</button>
+        <h2 id="lbl-choose-num">Выбери цифру:</h2>
+        <div class="numpad" style="margin-bottom:20px">
+            <button class="num-btn" onclick="app.renderTable(2)">2</button><button class="num-btn" onclick="app.renderTable(3)">3</button><button class="num-btn" onclick="app.renderTable(4)">4</button>
+            <button class="num-btn" onclick="app.renderTable(5)">5</button><button class="num-btn" onclick="app.renderTable(6)">6</button><button class="num-btn" onclick="app.renderTable(7)">7</button>
+            <button class="num-btn" onclick="app.renderTable(8)">8</button><button class="num-btn" onclick="app.renderTable(9)">9</button>
+        </div>
+        <div id="table-display" class="table-display-grid hidden"></div>
+    </div>
+
+    <script>
+    const TRANS = {
+        ru: { jun_t:"Малыши", jun_d:"до 6 лет", sen_t:"Старшие", sen_d:"до 10 лет", sel_sub:"Выбери предмет", l_let:"🔤 Буквы", l_math:"🧮 Математика", map:"Карта", dict:"📖 Словарь", hard:"Сложно", p_let:"Буква", p_num:"Цифра", paint:"Раскрась!", pop:"Лопай!", write:"Напиши слово:", task:"Задания", table:"Таблица", choose:"Выбери цифру", yes:["Молодец!"], no:["Попробуй еще"], find:"🔎 Найди слова" },
+        en: { jun_t:"Junior", jun_d:"up to 6", sen_t:"Senior", sen_d:"up to 10", sel_sub:"Select Subject", l_let:"🔤 Letters", l_math:"🧮 Math", map:"Map", dict:"📖 Words", hard:"Hard", p_let:"Letter", p_num:"Number", paint:"Paint it!", pop:"Pop it!", write:"Write word:", task:"Tasks", table:"Table", choose:"Choose number", yes:["Good job!"], no:["Try again"], find:"🔎 Find Words" },
+        he: { jun_t:"קטנטנים", jun_d:"עד גיל 6", sen_t:"גדולים", sen_d:"עד גיל 10", sel_sub:"בחר נושא", l_let:"🔤 אותיות", l_math:"🧮 חשבון", map:"מפה", dict:"📖 מילים", hard:"קשה", p_let:"האות", p_num:"המספר", paint:"צייר!", pop:"פוצץ!", write:"כתוב מילה:", task:"תרגילים", table:"לוח הכפל", choose:"בחר מספר", yes:["כל הכבוד!"], no:["נסה שוב"], find:"🔎 מצא מילים" }
+    };
+
+    const DB = {
+        ru: {
+            letters: [
+                { l:'А', t:'А', s:'А', ops:[{w:'Арбуз',i:'🍉'},{w:'Автобус',i:'🚌'},{w:'Акула',i:'🦈'},{w:'Апельсин',i:'🍊'},{w:'Ананас',i:'🍍'}] },
+                { l:'Б', t:'Б', s:'Бэ', ops:[{w:'Банан',i:'🍌'},{w:'Белка',i:'🐿️'},{w:'Бык',i:'🐂'},{w:'Барабан',i:'🥁'},{w:'Бабочка',i:'🦋'}] },
+                { l:'В', t:'В', s:'Вэ', ops:[{w:'Волк',i:'🐺'},{w:'Ведро',i:'🪣'},{w:'Вода',i:'💧'},{w:'Ваза',i:'🏺'},{w:'Вишня',i:'🍒'}] },
+                { l:'Г', t:'Г', s:'Гэ', ops:[{w:'Гриб',i:'🍄'},{w:'Груша',i:'🍐'},{w:'Гусь',i:'🪿'},{w:'Глаз',i:'👁️'},{w:'Гитара',i:'🎸'}] },
+                { l:'Д', t:'Д', s:'Дэ', ops:[{w:'Дом',i:'🏠'},{w:'Дед',i:'👴'},{w:'Дерево',i:'🌳'},{w:'Дыня',i:'🍈'},{w:'Дверь',i:'🚪'}] },
+                { l:'Е', t:'Е', s:'Е', ops:[{w:'Ель',i:'🌲'},{w:'Енот',i:'🦝'},{w:'Еда',i:'🥘'},{w:'Ежевика',i:'🫐'},{w:'Единорог',i:'🦄'}] },
+                { l:'Ё', t:'Ё', s:'Ё', ops:[{w:'Ёжик',i:'🦔'},{w:'Ёлка',i:'🎄'},{w:'Ёрш',i:'🐟'},{w:'Мёд',i:'🍯'},{w:'Лёд',i:'🧊'}] },
+                { l:'Ж', t:'Ж', s:'Жэ', ops:[{w:'Жук',i:'🪲'},{w:'Жираф',i:'🦒'},{w:'Жаба',i:'🐸'},{w:'Желудь',i:'🌰'},{w:'Жилет',i:'🦺'}] },
+                { l:'З', t:'З', s:'Зэ', ops:[{w:'Зонт',i:'☂️'},{w:'Заяц',i:'🐇'},{w:'Зебра',i:'🦓'},{w:'Звезда',i:'⭐'},{w:'Замок',i:'🏰'}] },
+                { l:'И', t:'И', s:'И', ops:[{w:'Игла',i:'🪡'},{w:'Индюк',i:'🦃'},{w:'Игрушка',i:'🧸'},{w:'Изба',i:'🏠'},{w:'Ирис',i:'🍬'}] },
+                { l:'Й', t:'Й', s:'И краткое', ops:[{w:'Йогурт',i:'🥣'},{w:'Йод',i:'🧪'},{w:'Йог',i:'🧘'},{w:'Чай',i:'☕'},{w:'Майка',i:'🎽'}] },
+                { l:'К', t:'К', s:'Ка', ops:[{w:'Кот',i:'🐈'},{w:'Кит',i:'🐋'},{w:'Ключ',i:'🔑'},{w:'Книга',i:'📖'},{w:'Корова',i:'🐄'}] },
+                { l:'Л', t:'Л', s:'Эль', ops:[{w:'Лев',i:'🦁'},{w:'Лиса',i:'🦊'},{w:'Луна',i:'🌙'},{w:'Лимон',i:'🍋'},{w:'Лес',i:'🌲'}] },
+                { l:'М', t:'М', s:'Эм', ops:[{w:'Мяч',i:'⚽'},{w:'Мышь',i:'🐭'},{w:'Медведь',i:'🐻'},{w:'Машина',i:'🚗'},{w:'Муха',i:'🪰'}] },
+                { l:'Н', t:'Н', s:'Эн', ops:[{w:'Нож',i:'🔪'},{w:'Нос',i:'👃'},{w:'Носки',i:'🧦'},{w:'Носорог',i:'🦏'},{w:'Нитки',i:'🧵'}] },
+                { l:'О', t:'О', s:'О', ops:[{w:'Очки',i:'👓'},{w:'Облако',i:'☁️'},{w:'Овца',i:'🐑'},{w:'Огонь',i:'🔥'},{w:'Орех',i:'🥜'}] },
+                { l:'П', t:'П', s:'Пэ', ops:[{w:'Паук',i:'🕷️'},{w:'Панда',i:'🐼'},{w:'Пицца',i:'🍕'},{w:'Поезд',i:'🚂'},{w:'Птица',i:'🐦'}] },
+                { l:'Р', t:'Р', s:'Эр', ops:[{w:'Рак',i:'🦞'},{w:'Рыба',i:'🐟'},{w:'Роза',i:'🌹'},{w:'Рука',i:'✋'},{w:'Ракета',i:'🚀'}] },
+                { l:'С', t:'С', s:'Эс', ops:[{w:'Сыр',i:'🧀'},{w:'Слон',i:'🐘'},{w:'Солнце',i:'☀️'},{w:'Собака',i:'🐕'},{w:'Стол',i:'🪑'}] },
+                { l:'Т', t:'Т', s:'Тэ', ops:[{w:'Торт',i:'🎂'},{w:'Тигр',i:'🐅'},{w:'Тыква',i:'🎃'},{w:'Телефон',i:'📱'},{w:'Трактор',i:'🚜'}] },
+                { l:'У', t:'У', s:'У', ops:[{w:'Утка',i:'🦆'},{w:'Ухо',i:'👂'},{w:'Улитка',i:'🐌'},{w:'Утюг',i:'♨️'},{w:'Удочка',i:'🎣'}] },
+                { l:'Ф', t:'Ф', s:'Эф', ops:[{w:'Флаг',i:'🚩'},{w:'Фонарь',i:'🔦'},{w:'Фея',i:'🧚'},{w:'Фрукты',i:'🍎'},{w:'Фламинго',i:'🦩'}] },
+                { l:'Х', t:'Х', s:'Ха', ops:[{w:'Хлеб',i:'🍞'},{w:'Хомяк',i:'🐹'},{w:'Халат',i:'🥋'},{w:'Холодильник',i:'❄️'},{w:'Художник',i:'🎨'}] },
+                { l:'Ц', t:'Ц', s:'Цэ', ops:[{w:'Цветок',i:'🌸'},{w:'Цыпленок',i:'🐥'},{w:'Царь',i:'👑'},{w:'Цепь',i:'⛓️'},{w:'Цирк',i:'🎪'}] },
+                { l:'Ч', t:'Ч', s:'Че', ops:[{w:'Часы',i:'⏰'},{w:'Чашка',i:'☕'},{w:'Черепаха',i:'🐢'},{w:'Чеснок',i:'🧄'},{w:'Чайник',i:'🫖'}] },
+                { l:'Ш', t:'Ш', s:'Ша', ops:[{w:'Шапка',i:'🧢'},{w:'Шар',i:'🎈'},{w:'Шоколад',i:'🍫'},{w:'Шкаф',i:'🚪'},{w:'Шорты',i:'🩳'}] },
+                { l:'Щ', t:'Щ', s:'Ща', ops:[{w:'Щетка',i:'🧹'},{w:'Щука',i:'🐟'},{w:'Щенок',i:'🐶'},{w:'Щит',i:'🛡️'},{w:'Борщ',i:'🍲'}] },
+                { l:'Ъ', t:'Ъ', s:'Твердый знак', ops:[{w:'Подъезд',i:'🚪'},{w:'Съел',i:'😋'},{w:'Объезд',i:'🚧'},{w:'Объявление',i:'📜'},{w:'Разъем',i:'🔌'}] },
+                { l:'Ы', t:'Ы', s:'Ы', ops:[{w:'Сыр',i:'🧀'},{w:'Мышь',i:'🐭'},{w:'Рыба',i:'🐟'},{w:'Дым',i:'💨'},{w:'Мыло',i:'🧼'}] },
+                { l:'Ь', t:'Ь', s:'Мягкий знак', ops:[{w:'Лось',i:'🦌'},{w:'Соль',i:'🧂'},{w:'Конь',i:'🐎'},{w:'Гусь',i:'🪿'},{w:'Ночь',i:'🌑'}] },
+                { l:'Э', t:'Э', s:'Э', ops:[{w:'Эхо',i:'🗣️'},{w:'Эскимо',i:'🍦'},{w:'Экскаватор',i:'🚜'},{w:'Экран',i:'🖥️'},{w:'Эму',i:'🐦'}] },
+                { l:'Ю', t:'Ю', s:'Ю', ops:[{w:'Юла',i:'🧶'},{w:'Юбка',i:'👗'},{w:'Юг',i:'🧭'},{w:'Юрта',i:'⛺'},{w:'Юнга',i:'🚢'}] },
+                { l:'Я', t:'Я', s:'Я', ops:[{w:'Яблоко',i:'🍎'},{w:'Яйцо',i:'🥚'},{w:'Якорь',i:'⚓'},{w:'Ящерица',i:'🦎'},{w:'Ягода',i:'🍓'}] }
+            ],
+            numbers: [
+                {v:1, t:'Один', s:'Один', w:'Один', i:'🍎'}, {v:2, t:'Два', s:'Два', w:'Два', i:'🍎🍎'}, {v:3, t:'Три', s:'Три', w:'Три', i:'🍎🍎🍎'},
+                {v:4, t:'Четыре', s:'Четыре', w:'Четыре', i:'⭐⭐⭐⭐'}, {v:5, t:'Пять', s:'Пять', w:'Пять', i:'⭐⭐⭐⭐⭐'},
+                {v:6, t:'Шесть', s:'Шесть', w:'Шесть', i:'🍬🍬🍬🍬🍬🍬'}, {v:7, t:'Семь', s:'Семь', w:'Семь', i:'🎈🎈🎈🎈🎈🎈🎈'},
+                {v:8, t:'Восемь', s:'Восемь', w:'Восемь', i:'🟣🟣🟣🟣🟣🟣🟣🟣'}, {v:9, t:'Девять', s:'Девять', w:'Девять', i:'🌼🌼🌼🌼🌼🌼🌼🌼🌼'},
+                {v:10, t:'Десять', s:'Десять', w:'Десять', i:'🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒'}
+            ],
+            locale: 'ru-RU'
+        },
+        en: {
+            letters: [
+                { l:'A', t:'A', s:'A', ops:[{w:'Apple',i:'🍎'}, {w:'Ant',i:'🐜'}, {w:'Axe',i:'🪓'}, {w:'Arm',i:'💪'}, {w:'Art',i:'🎨'}] },
+                { l:'B', t:'B', s:'Bee', ops:[{w:'Ball',i:'⚽'}, {w:'Bear',i:'🐻'}, {w:'Bat',i:'🦇'}, {w:'Bus',i:'🚌'}, {w:'Bed',i:'🛏️'}] },
+                { l:'C', t:'C', s:'Cee', ops:[{w:'Cat',i:'🐱'}, {w:'Car',i:'🚗'}, {w:'Cup',i:'☕'}, {w:'Cap',i:'🧢'}, {w:'Cake',i:'🍰'}] },
+                { l:'D', t:'D', s:'Dee', ops:[{w:'Dog',i:'🐶'}, {w:'Duck',i:'🦆'}, {w:'Doll',i:'🪆'}, {w:'Door',i:'🚪'}, {w:'Dad',i:'👨'}] },
+                { l:'E', t:'E', s:'E', ops:[{w:'Egg',i:'🥚'}, {w:'Eye',i:'👁️'}, {w:'Ear',i:'👂'}, {w:'Elf',i:'🧝'}, {w:'Earth',i:'🌍'}] },
+                { l:'F', t:'F', s:'Eff', ops:[{w:'Fish',i:'🐟'}, {w:'Fan',i:'🪭'}, {w:'Fox',i:'🦊'}, {w:'Fire',i:'🔥'}, {w:'Frog',i:'🐸'}] },
+                { l:'G', t:'G', s:'Gee', ops:[{w:'Goat',i:'🐐'}, {w:'Gift',i:'🎁'}, {w:'Gum',i:'🍬'}, {w:'Girl',i:'👧'}, {w:'Gate',i:'⛩️'}] },
+                { l:'H', t:'H', s:'Aitch', ops:[{w:'Hat',i:'🎩'}, {w:'Hen',i:'🐔'}, {w:'Hand',i:'✋'}, {w:'House',i:'🏠'}, {w:'Horse',i:'🐎'}] },
+                { l:'I', t:'I', s:'I', ops:[{w:'Ice',i:'🧊'}, {w:'Ink',i:'🖊️'}, {w:'Igloo',i:'🛖'}, {w:'Island',i:'🏝️'}, {w:'Iron',i:'♨️'}] },
+                { l:'J', t:'J', s:'Jay', ops:[{w:'Jam',i:'🏺'}, {w:'Jet',i:'✈️'}, {w:'Jug',i:'🥛'}, {w:'Jar',i:'🫙'}, {w:'Jelly',i:'🍮'}] },
+                { l:'K', t:'K', s:'Kay', ops:[{w:'Key',i:'🔑'}, {w:'Kite',i:'🪁'}, {w:'King',i:'👑'}, {w:'Kiwi',i:'🥝'}, {w:'Koala',i:'🐨'}] },
+                { l:'L', t:'L', s:'El', ops:[{w:'Lion',i:'🦁'}, {w:'Lemon',i:'🍋'}, {w:'Lamp',i:'🛋️'}, {w:'Leaf',i:'🍃'}, {w:'Leg',i:'🦵'}] },
+                { l:'M', t:'M', s:'Em', ops:[{w:'Moon',i:'🌙'}, {w:'Man',i:'👨'}, {w:'Map',i:'🗺️'}, {w:'Milk',i:'🥛'}, {w:'Mouse',i:'🐭'}] },
+                { l:'N', t:'N', s:'En', ops:[{w:'Nut',i:'🌰'}, {w:'Net',i:'🕸️'}, {w:'Nose',i:'👃'}, {w:'Nine',i:'9️⃣'}, {w:'Nest',i:'🪺'}] },
+                { l:'O', t:'O', s:'O', ops:[{w:'Owl',i:'🦉'}, {w:'Ox',i:'🐂'}, {w:'Oil',i:'🛢️'}, {w:'Onion',i:'🧅'}, {w:'Orange',i:'🍊'}] },
+                { l:'P', t:'P', s:'Pee', ops:[{w:'Pig',i:'🐷'}, {w:'Pen',i:'🖊️'}, {w:'Pan',i:'🍳'}, {w:'Pie',i:'🥧'}, {w:'Pear',i:'🍐'}] },
+                { l:'Q', t:'Q', s:'Cue', ops:[{w:'Queen',i:'👑'}, {w:'Quilt',i:'🛌'}, {w:'Quiz',i:'❓'}, {w:'Quiet',i:'🤫'}, {w:'Quill',i:'🪶'}] },
+                { l:'R', t:'R', s:'Ar', ops:[{w:'Rat',i:'🐀'}, {w:'Red',i:'🔴'}, {w:'Run',i:'🏃'}, {w:'Rose',i:'🌹'}, {w:'Rain',i:'🌧️'}] },
+                { l:'S', t:'S', s:'Ess', ops:[{w:'Sun',i:'☀️'}, {w:'Star',i:'⭐'}, {w:'Snake',i:'🐍'}, {w:'Sock',i:'🧦'}, {w:'Six',i:'6️⃣'}] },
+                { l:'T', t:'T', s:'Tee', ops:[{w:'Toy',i:'🧸'}, {w:'Top',i:'🔝'}, {w:'Ten',i:'🔟'}, {w:'Tent',i:'⛺'}, {w:'Tea',i:'☕'}] },
+                { l:'U', t:'U', s:'U', ops:[{w:'Up',i:'⬆️'}, {w:'UFO',i:'🛸'}, {w:'Urn',i:'⚱️'}, {w:'User',i:'👤'}, {w:'Unit',i:'1️⃣'}] },
+                { l:'V', t:'V', s:'Vee', ops:[{w:'Van',i:'🚐'}, {w:'Vet',i:'⚕️'}, {w:'Vase',i:'🏺'}, {w:'Vest',i:'🦺'}, {w:'Violin',i:'🎻'}] },
+                { l:'W', t:'W', s:'Double U', ops:[{w:'Wolf',i:'🐺'}, {w:'Web',i:'🕸️'}, {w:'Wig',i:'💇'}, {w:'Well',i:'🕳️'}, {w:'Wall',i:'🧱'}] },
+                { l:'X', t:'X', s:'Ex', ops:[{w:'Box',i:'📦'}, {w:'Fox',i:'🦊'}, {w:'Six',i:'6️⃣'}, {w:'Axe',i:'🪓'}, {w:'Mix',i:'🥣'}] },
+                { l:'Y', t:'Y', s:'Wy', ops:[{w:'Yak',i:'🐂'}, {w:'Yo-yo',i:'🪀'}, {w:'Yam',i:'🍠'}, {w:'Yes',i:'👍'}, {w:'Yellow',i:'🟡'}] },
+                { l:'Z', t:'Z', s:'Zed', ops:[{w:'Zoo',i:'🦓'}, {w:'Zip',i:'🤐'}, {w:'Zero',i:'0️⃣'}, {w:'Zebra',i:'🦓'}, {w:'Zigzag',i:'〰️'}] }
+            ],
+            numbers: [
+                {v:1, t:'One', s:'One', w:'One', i:'🍎'}, {v:2, t:'Two', s:'Two', w:'Two', i:'🍎🍎'}, {v:3, t:'Three', s:'Three', w:'Three', i:'🍎🍎🍎'}, {v:4, t:'Four', s:'Four', w:'Four', i:'⭐⭐⭐⭐'}, {v:5, t:'Five', s:'Five', w:'Five', i:'⭐⭐⭐⭐⭐'},
+                {v:6, t:'Six', s:'Six', w:'Six', i:'🍬🍬🍬🍬🍬🍬'}, {v:7, t:'Seven', s:'Seven', w:'Seven', i:'🎈🎈🎈🎈🎈🎈🎈'}, {v:8, t:'Eight', s:'Eight', w:'Eight', i:'🟣🟣🟣🟣🟣🟣🟣🟣'}, {v:9, t:'Nine', s:'Nine', w:'Nine', i:'🌼🌼🌼🌼🌼🌼🌼🌼🌼'}, {v:10, t:'Ten', s:'Ten', w:'Ten', i:'🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒'}
+            ],
+            locale: 'en-US'
+        },
+        he: {
+            letters: [
+                { l:'א', t:'א', s:'אָלֶף', ops:[{w:'אריה', i:'🦁'}, {w:'אבטיח', i:'🍉'}, {w:'אבא', i:'👨'}, {w:'ארון', i:'🚪'}, {w:'אש', i:'🔥'}] },
+                { l:'ב', t:'ב', s:'בֵּית', ops:[{w:'בית', i:'🏠'}, {w:'בננה', i:'🍌'}, {w:'בלון', i:'🎈'}, {w:'בובה', i:'🪆'}, {w:'ברווז', i:'🦆'}] },
+                { l:'ג', t:'ג', s:'גִּימֶל', ops:[{w:'גמל', i:'🐫'}, {w:'גזר', i:'🥕'}, {w:'גלידה', i:'🍦'}, {w:'גלגל', i:'🛞'}, {w:'גשם', i:'🌧️'}] },
+                { l:'ד', t:'ד', s:'דָּלֶת', ops:[{w:'דלת', i:'🚪'}, {w:'דג', i:'🐟'}, {w:'דובדבן', i:'🍒'}, {w:'דבורה', i:'🐝'}, {w:'דוב', i:'🐻'}] },
+                { l:'ה', t:'ה', s:'הֵא', ops:[{w:'הר', i:'🏔️'}, {w:'היפופוטם', i:'🦛'}, {w:'הפתעה', i:'🎁'}, {w:'הגה', i:'☸️'}, {w:'הורים', i:'👪'}] },
+                { l:'ו', t:'ו', s:'וָו', ops:[{w:'ורד', i:'🌹'}, {w:'וילון', i:'🪟'}, {w:'וו', i:'🪝'}, {w:'וופל', i:'🧇'}, {w:'ורוד', i:'🩷'}] },
+                { l:'ז', t:'ז', s:'זַיִן', ops:[{w:'זברה', i:'🦓'}, {w:'זית', i:'🫒'}, {w:'זבוב', i:'🪰'}, {w:'זהב', i:'🥇'}, {w:'זאב', i:'🐺'}] },
+                { l:'ח', t:'ח', s:'חֵית', ops:[{w:'חלון', i:'🪟'}, {w:'חתול', i:'🐈'}, {w:'חלב', i:'🥛'}, {w:'חלה', i:'🍞'}, {w:'חמור', i:'🫏'}] },
+                { l:'ט', t:'ט', s:'טֵית', ops:[{w:'טלפון', i:'📞'}, {w:'טבעת', i:'💍'}, {w:'טווס', i:'🦚'}, {w:'טלוויזיה', i:'📺'}, {w:'טייס', i:'👨‍✈️'}] },
+                { l:'י', t:'י', s:'יוֹד', ops:[{w:'ילד', i:'👦'}, {w:'יין', i:'🍷'}, {w:'ירח', i:'🌙'}, {w:'יד', i:'✋'}, {w:'ינשוף', i:'🦉'}] },
+                { l:'כ', t:'כ', s:'כָּף', ops:[{w:'כדור', i:'⚽'}, {w:'כלב', i:'🐶'}, {w:'כיסא', i:'🪑'}, {w:'כובע', i:'🧢'}, {w:'כף', i:'🥄'}] },
+                { l:'ל', t:'ל', s:'לָמֶד', ops:[{w:'לימון', i:'🍋'}, {w:'לב', i:'❤️'}, {w:'לחם', i:'🍞'}, {w:'לוויתן', i:'🐋'}, {w:'לילה', i:'🌃'}] },
+                { l:'מ', t:'מ', s:'מֵם', ops:[{w:'מכונית', i:'🚗'}, {w:'מים', i:'💧'}, {w:'מיטה', i:'🛏️'}, {w:'מפתח', i:'🔑'}, {w:'מלך', i:'👑'}] },
+                { l:'נ', t:'נ', s:'נוּן', ops:[{w:'נר', i:'🕯️'}, {w:'נעל', i:'👞'}, {w:'נחש', i:'🐍'}, {w:'נמלה', i:'🐜'}, {w:'נמר', i:'🐆'}] },
+                { l:'ס', t:'ס', s:'סָמֶךְ', ops:[{w:'סוס', i:'🐎'}, {w:'ספר', i:'📖'}, {w:'סבא', i:'👴'}, {w:'סולם', i:'🪜'}, {w:'סיר', i:'🍲'}] },
+                { l:'ע', t:'ע', s:'עַיִן', ops:[{w:'עוגה', i:'🎂'}, {w:'עין', i:'👁️'}, {w:'עץ', i:'🌳'}, {w:'עכבר', i:'🐁'}, {w:'עיפרון', i:'✏️'}] },
+                { l:'פ', t:'פ', s:'פֵּא', ops:[{w:'פיל', i:'🐘'}, {w:'פה', i:'👄'}, {w:'פרפר', i:'🦋'}, {w:'פרחים', i:'💐'}, {w:'פעמון', i:'🔔'}] },
+                { l:'צ', t:'צ', s:'צָדִיק', ops:[{w:'צב', i:'🐢'}, {w:'צפרדע', i:'🐸'}, {w:'ציפור', i:'🐦'}, {w:'צלחת', i:'🍽️'}, {w:'צעיף', i:'🧣'}] },
+                { l:'ק', t:'ק', s:'קוֹף', ops:[{w:'קוף', i:'🐒'}, {w:'קרנף', i:'🦏'}, {w:'קיפוד', i:'🦔'}, {w:'קשת', i:'🌈'}, {w:'קופסה', i:'📦'}] },
+                { l:'ר', t:'ר', s:'רֵישׁ', ops:[{w:'רכבת', i:'🚂'}, {w:'ראש', i:'🗣️'}, {w:'רגל', i:'🦶'}, {w:'רימון', i:'🍅'}, {w:'ראי', i:'🪞'}] },
+                { l:'ש', t:'ש', s:'שִׁין', ops:[{w:'שמש', i:'☀️'}, {w:'שן', i:'🦷'}, {w:'שולחן', i:'🪑'}, {w:'שעון', i:'⌚'}, {w:'שופר', i:'📯'}] },
+                { l:'ת', t:'ת', s:'תָּיו', ops:[{w:'תפוח', i:'🍎'}, {w:'תות', i:'🍓'}, {w:'תיק', i:'🎒'}, {w:'תינוק', i:'👶'}, {w:'תרנגול', i:'🐓'}] }
+            ],
+            numbers: [
+                {v:1, t:'אחת', s:'אַחַת', w:'אחת', i:'🍎'}, {v:2, t:'שתיים', s:'שְׁתַּיִם', w:'שתיים', i:'🍎🍎'}, {v:3, t:'שלוש', s:'שָׁלוֹשׁ', w:'שלוש', i:'🍎🍎🍎'}, 
+                {v:4, t:'ארבע', s:'אַרְבַּע', w:'ארבע', i:'⭐⭐⭐⭐'}, {v:5, t:'חמש', s:'חָמֵשׁ', w:'חמש', i:'⭐⭐⭐⭐⭐'}, {v:6, t:'שש', s:'שֵׁשׁ', w:'שש', i:'🍬🍬🍬🍬🍬🍬'}, 
+                {v:7, t:'שבע', s:'שֶׁבַע', w:'שבע', i:'🎈🎈🎈🎈🎈🎈🎈'}, {v:8, t:'שמונה', s:'שְׁמוֹנֶה', w:'שמונה', i:'🟣🟣🟣🟣🟣🟣🟣🟣'}, {v:9, t:'תשע', s:'תֵּשַׁע', w:'תשע', i:'🌼🌼🌼🌼🌼🌼🌼🌼🌼'}, 
+                {v:10, t:'עשר', s:'עֶשֶׂר', w:'עשר', i:'🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒'}
+            ],
+            locale: 'he-IL'
+        }
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function wakeUpAudio() { if(audioCtx.state==='suspended')audioCtx.resume(); const o=audioCtx.createOscillator();const g=audioCtx.createGain(); o.frequency.value=0.01;g.gain.value=0.01;o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.1); }
+    function playTone(freq,type,dur){wakeUpAudio();const o=audioCtx.createOscillator();const g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);g.gain.setValueAtTime(0.1,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur);}
+    function playWinSound(){playTone(523.25,'sine',0.1);setTimeout(()=>playTone(659.25,'sine',0.1),100);setTimeout(()=>playTone(783.99,'sine',0.3),200);}
+    function playPopSound(){playTone(800,'sine',0.05);}
+    function playLoseSound(){playTone(150,'sawtooth',0.3);}
+
+    const app = {
+        profile:'', lang:'ru', level:0, locked:false, junMoves:0, senCurrent:[], senTarget:'', isHardMode:false,
+        mathCurrent:'', mathAnswer:0, paintColor:'#2196F3',
+        progress: { junior:{ru:{lvl:0,stars:[]},en:{lvl:0,stars:[]},he:{lvl:0,stars:[]}, numbers:0}, senior:{ru:{lvl:0,stars:[]},en:{lvl:0,stars:[]},he:{lvl:0,stars:[]}} },
+        currData: {}, puzzlePieces: [], selectedPiece: -1,
+        philWords: [], philFound: 0, philSelected: [],
+
+        init: function() {
+            const save = localStorage.getItem('alphaPro_v21');
+            if(save) { const d=JSON.parse(save); if(d.progress) this.progress=d.progress; if(d.lang) this.setLang(d.lang); }
+            this.updateLoc();
+            this.go('view-roles'); // Force start screen
+        },
+        save: function() { localStorage.setItem('alphaPro_v21', JSON.stringify({progress:this.progress, lang:this.lang})); },
+        go: function(id) { 
+            document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden')); 
+            document.getElementById(id).classList.remove('hidden'); 
+            
+            // HIDE LANGUAGE BUTTON IF NOT MAIN MENU
+            if(id === 'view-roles') document.querySelector('.lang-btn').style.display = 'flex';
+            else document.querySelector('.lang-btn').style.display = 'none';
+        },
+        
+        toggleLang: function() { const l=['ru','en','he']; this.setLang(l[(l.indexOf(this.lang)+1)%3]); },
+        setLang: function(l) { this.lang=l; document.documentElement.dir=(l==='he')?'rtl':'ltr'; document.querySelector('.lang-btn').innerText=(l==='ru'?'🇷🇺':(l==='en'?'🇺🇸':'🇮🇱')); this.updateLoc(); this.save(); if(!document.getElementById('view-map').classList.contains('hidden')) this.renderMap(); },
+        updateLoc: function() {
+            const t = TRANS[this.lang];
+            document.getElementById('lbl-jun-title').innerText = t.jun_t; document.getElementById('lbl-jun-desc').innerText = t.jun_d;
+            document.getElementById('lbl-sen-title').innerText = t.sen_t; document.getElementById('lbl-sen-desc').innerText = t.sen_d;
+            document.getElementById('lbl-select-subj').innerText = t.sel_sub; document.getElementById('lbl-letters').innerText = t.l_let;
+            document.getElementById('lbl-math').innerText = t.l_math; document.getElementById('lbl-map').innerText = t.map;
+            document.getElementById('lbl-dict').innerText = t.dict; document.getElementById('lbl-dict-title').innerText = t.dict;
+            document.getElementById('lbl-task-paint').innerText = t.paint; document.getElementById('lbl-task-pop').innerText = t.pop;
+            document.getElementById('lbl-task-write').innerText = t.write;
+            document.getElementById('lbl-find').innerText = t.find;
+            document.querySelectorAll('.lbl-tasks').forEach(e=>e.innerText=t.task); document.querySelector('.lbl-table').innerText = t.table;
+            document.getElementById('lbl-choose-num').innerText = t.choose; document.getElementById('lbl-hard').innerText = t.hard;
+        },
+
+        setProfile: function(p) { this.profile=p; if(p==='junior') { this.isMathMode=false; this.renderMap(); this.go('view-map'); } else { this.go('view-senior-menu'); } },
+        startSeniorLetters: function() { this.isMathMode=false; this.renderMap(); this.go('view-map'); },
+        startJuniorMath: function() { this.isMathMode=true; this.renderMap(); this.go('view-map'); },
+
+        renderMap: function() {
+            const container = document.getElementById('map-container'); container.innerHTML = '';
+            let list, current, starsArr;
+            if(this.isMathMode && this.profile === 'junior') {
+                list = DB[this.lang].numbers;
+                if(typeof this.progress.junior.numbers !== 'object') this.progress.junior.numbers = {lvl:0, stars:[]};
+                current = this.progress.junior.numbers.lvl; starsArr = this.progress.junior.numbers.stars;
+            } else {
+                list = DB[this.lang].letters;
+                current = this.progress[this.profile][this.lang].lvl; starsArr = this.progress[this.profile][this.lang].stars;
+            }
+            list.forEach((item, idx) => {
+                const node = document.createElement('div'); node.innerText = item.l || item.v;
+                if(idx < current) {
+                    node.className = 'level-node completed'; node.onclick = () => this.startLevel(idx);
+                    let h=''; const s=starsArr[idx]||0; for(let i=0;i<3;i++) h+=`<div class="tiny-star ${i<s?'gold':''}">★</div>`; node.innerHTML += `<div class="level-stars">${h}</div>`;
+                } else if(idx === current) {
+                    node.className = 'level-node unlocked'; node.onclick = () => this.startLevel(idx);
+                } else { node.className = 'level-node locked'; }
+                container.appendChild(node);
+            });
+        },
+
+        startLevel: function(idx) {
+            this.level = idx; this.locked = false; clearInterval(this.timer); clearInterval(this.bubTimer);
+            if(this.isMathMode && this.profile === 'junior') {
+                const d = DB[this.lang].numbers[idx];
+                this.currData = { l: d.v, w: d.w, i: d.i, t: d.t, s: d.s || d.w };
+                this.speak(TRANS[this.lang].p_num + " " + d.s);
+                const step = idx % 3;
+                if(step===0) this.startJuniorPaint(); else if(step===1) this.startJuniorPuzzle(); else this.startJuniorBubbles();
+            } else {
+                const letterObj = DB[this.lang].letters[idx];
+                const op = letterObj.ops[Math.floor(Math.random()*letterObj.ops.length)];
+                this.currData = { l: letterObj.l, w: op.w, i: op.i, t: letterObj.t, s: op.s || op.w, ls: letterObj.s || letterObj.l }; 
+                
+                if(this.profile === 'junior') {
+                    this.speak(TRANS[this.lang].p_let + " " + this.currData.ls);
+                    const step = idx % 3;
+                    if(step===0) this.startJuniorPaint(); else if(step===1) this.startJuniorPuzzle(); else this.startJuniorBubbles();
+                } else {
+                    this.startSenior();
+                }
+            }
+        },
+
+        speak: function(txt) {
+            wakeUpAudio(); window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(" " + txt);
+            u.lang = DB[this.lang].locale; u.rate = 0.9;
+            window.speechSynthesis.speak(u);
+        },
+        speakTarget: function() { 
+            if(this.isMathMode) this.speak(TRANS[this.lang].p_num + " " + this.currData.s);
+            else this.speak(TRANS[this.lang].p_let + " " + this.currData.ls); 
+        },
+        speakCurrentWord: function() { if(this.senTarget) this.speak(this.senTargetSpeech || this.senTarget); },
+        goBackFromMap: function() { this.go('view-roles'); },
+        
+        goBackFromGame: function() { 
+            clearInterval(this.bubTimer); clearTimeout(this.timeoutFinish);
+            if(!this.isMathMode || this.profile === 'junior') this.renderMap();
+            this.go(this.isMathMode && this.profile==='senior' ? 'view-math-menu' : 'view-map'); 
+        },
+        goBackFromMathMenu: function() { this.go('view-senior-menu'); },
+
+        // --- JUNIOR PAINT ---
+        setColor: function(c, el) { this.paintColor = c; document.querySelectorAll('.color-swatch').forEach(d=>d.classList.remove('active')); el.classList.add('active'); },
+        startJuniorPaint: function() {
+            this.go('view-game-jun-paint');
+            this.junMoves = 0; 
+            document.getElementById('jun-img').innerText = this.isMathMode ? '' : this.currData.i;
+            document.getElementById('jun-quant').innerText = this.isMathMode ? this.currData.i : '';
+            document.getElementById('btn-jun-check').disabled = false;
+            
+            const cvs = document.getElementById('magic-canvas'); const ctx = cvs.getContext('2d');
+            const s = cvs.clientWidth; cvs.width = s; cvs.height = s;
+            ctx.clearRect(0,0,s,s);
+            ctx.font = `bold ${s*0.6}px Arial`; ctx.textAlign="center"; ctx.textBaseline="middle";
+            ctx.fillStyle="#E0E0E0"; ctx.globalCompositeOperation='source-over';
+            let t = this.currData.l; ctx.fillText(t, s/2, s/2);
+            ctx.globalCompositeOperation='source-atop';
+            
+            let p=false;
+            const draw=(e)=>{
+                e.preventDefault(); const r=cvs.getBoundingClientRect();
+                const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+                const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+                ctx.fillStyle=this.paintColor; ctx.beginPath(); ctx.arc(x,y,s*0.06,0,Math.PI*2); ctx.fill();
+                this.junMoves++;
+            };
+            cvs.ontouchstart=cvs.onmousedown=(e)=>{p=true;draw(e)}; cvs.ontouchend=cvs.onmouseup=()=>{p=false};
+            cvs.ontouchmove=cvs.onmousemove=(e)=>{if(p)draw(e)};
+        },
+        checkJuniorPaint: function() {
+            if(this.junMoves<5) { return; }
+            this.finishLevel(3);
+        },
+
+        // --- JUNIOR PUZZLE (FIXED) ---
+        startJuniorPuzzle: function() {
+            this.go('view-game-jun-puzzle');
+            document.getElementById('puz-letter').innerText = this.currData.l;
+            document.getElementById('puz-word').innerText = this.currData.w;
+
+            const pCanvas = document.createElement('canvas');
+            pCanvas.width = 300; pCanvas.height = 300;
+            const ctx = pCanvas.getContext('2d');
+
+            // 1. Background gradient
+            const grd = ctx.createLinearGradient(0,0,300,300);
+            grd.addColorStop(0, '#FFF'); grd.addColorStop(1, '#B3E5FC');
+            ctx.fillStyle = grd; ctx.fillRect(0,0,300,300);
+            
+            // 2. FORCE UNIQUE PIECES: COLOR CODED NUMBERS
+            // 1(Red), 2(Blue), 3(Green), 4(Purple), 5(Orange), 6(Teal)
+            const nums = [
+                {t:'1', c:'#F44336', x:75, y:50}, {t:'2', c:'#2196F3', x:225, y:50},
+                {t:'3', c:'#4CAF50', x:75, y:150}, {t:'4', c:'#9C27B0', x:225, y:150},
+                {t:'5', c:'#FF9800', x:75, y:250}, {t:'6', c:'#009688', x:225, y:250}
+            ];
+
+            ctx.font = "bold 80px Arial";
+            ctx.textBaseline="middle"; ctx.textAlign="center";
+            
+            nums.forEach(n => {
+                ctx.fillStyle = n.c;
+                ctx.fillText(n.t, n.x, n.y);
+            });
+
+            // 3. Draw Emoji/Text
+            ctx.fillStyle='#000'; 
+            if(this.isMathMode) {
+                const emojis = this.currData.i; ctx.font = '50px Arial';
+                if(emojis.length > 5) { ctx.fillText(emojis.substring(0,5), 150, 120); ctx.fillText(emojis.substring(5), 150, 180); } 
+                else { ctx.fillText(emojis, 150, 150); }
+            } else {
+                ctx.font = '150px Arial'; ctx.fillText(this.currData.i, 150, 150);
+            }
+            const imgData = pCanvas.toDataURL();
+            
+            this.puzzlePieces = [];
+            for(let i=0; i<6; i++) this.puzzlePieces.push({id: i, currentPos: i});
+            
+            // Shuffle
+            for(let i=0; i<15; i++) {
+                const a = Math.floor(Math.random()*6); const b = Math.floor(Math.random()*6);
+                const temp = this.puzzlePieces[a].currentPos;
+                this.puzzlePieces[a].currentPos = this.puzzlePieces[b].currentPos;
+                this.puzzlePieces[b].currentPos = temp;
+            }
+            this.renderPuzzle(imgData);
+        },
+        
+        renderPuzzle: function(imgData) {
+            const cont = document.getElementById('jun-puzzle-cont'); cont.innerHTML = '';
+            for(let k=0; k<6; k++) {
+                // k is the visual slot index 0..5
+                const pieceObj = this.puzzlePieces.find(p => p.currentPos === k);
+                const div = document.createElement('div'); div.className = 'puzzle-piece';
+                div.style.backgroundImage = `url(${imgData})`;
+                
+                const correctCol = pieceObj.id % 2; 
+                const correctRow = Math.floor(pieceObj.id / 2);
+                div.style.backgroundPosition = `-${correctCol*150}px -${correctRow*100}px`;
+                div.style.backgroundSize = "300px 300px";
+                
+                if(this.selectedPiece === k) div.classList.add('selected');
+                
+                // VISUAL CUE: Green border if correct
+                if(pieceObj.id === k) div.classList.add('correct-pos');
+                else if(this.checkFailed) div.classList.add('error');
+
+                div.onclick = () => this.handlePuzzleClick(k, imgData);
+                cont.appendChild(div);
+            }
+        },
+        
+        handlePuzzleClick: function(clickedSlot, imgData) {
+            this.checkFailed = false;
+            if(this.selectedPiece === -1) {
+                this.selectedPiece = clickedSlot; this.renderPuzzle(imgData);
+            } else {
+                const pieceA = this.puzzlePieces.find(p => p.currentPos === this.selectedPiece);
+                const pieceB = this.puzzlePieces.find(p => p.currentPos === clickedSlot);
+                const temp = pieceA.currentPos; pieceA.currentPos = pieceB.currentPos; pieceB.currentPos = temp;
+                this.selectedPiece = -1;
+                this.renderPuzzle(imgData);
+                if(this.puzzlePieces.every(p => p.id === p.currentPos)) setTimeout(() => this.finishLevel(3), 500);
+            }
+        },
+        
+        checkJuniorPuzzle: function(manual) {
+            if(this.puzzlePieces.every(p => p.id === p.currentPos)) {
+                this.finishLevel(3);
+            } else {
+                if(manual) { 
+                    playLoseSound(); 
+                    this.checkFailed = true; 
+                    const imgData = document.querySelector('.puzzle-piece').style.backgroundImage.slice(5, -2);
+                    this.renderPuzzle(imgData);
+                }
+            }
+        },
+
+        // --- JUNIOR BUBBLES (WITH TIMER) ---
+        startJuniorBubbles: function() {
+            this.go('view-game-jun-bubbles');
+            document.getElementById('bub-target-emoji').innerText = this.currData.l;
+            document.getElementById('bubbles-container').innerHTML = '';
+            
+            // TIMER LOGIC
+            const bar = document.getElementById('bub-timer-bar'); bar.style.width='100%';
+            let timeLeft = 15;
+            this.timer = setInterval(() => {
+                timeLeft -= 0.1; 
+                bar.style.width = (timeLeft/15 * 100) + '%';
+                if(timeLeft <= 0) {
+                     clearInterval(this.timer); clearInterval(this.bubTimer);
+                     this.finishLevel(3);
+                }
+            }, 100);
+
+            this.bubTimer = setInterval(()=>{
+                const b = document.createElement('div'); b.className='bubble';
+                const correct = Math.random()>0.5;
+                b.innerText = correct ? this.currData.l : (typeof this.currData.l==='number' ? Math.floor(Math.random()*9) : '⛔');
+                b.style.left = Math.random()*80+'%'; b.style.bottom='-70px';
+                let pos=-70; 
+                const anim = setInterval(()=>{ pos+=2; b.style.bottom=pos+'px'; if(pos>350){clearInterval(anim); if(b.parentNode)b.remove();} },20);
+                b.onclick=(e)=>{
+                    e.stopPropagation();
+                    if(b.innerText == this.currData.l) { playPopSound(); b.classList.add('pop'); setTimeout(()=>b.remove(),200); }
+                    else playLoseSound();
+                };
+                document.getElementById('bubbles-container').appendChild(b);
+            }, 900);
+        },
+
+        // --- PHILWORDS (FIND WORDS) ---
+        showPhilwordMenu: function() {
+            const container = document.getElementById('phil-menu-container'); container.innerHTML = '';
+            // Change: Use ALL letters, not just user level
+            const list = DB[this.lang].letters;
+            
+            for(let i=0; i<list.length; i++) {
+                const node = document.createElement('div'); node.className = 'level-node unlocked';
+                node.innerText = list[i].l;
+                node.onclick = () => this.startPhilword(i);
+                container.appendChild(node);
+            }
+            this.go('view-phil-menu');
+        },
+        
+        startPhilword: function(letterIdx) {
+            this.go('view-game-phil');
+            const lData = DB[this.lang].letters[letterIdx];
+            document.getElementById('phil-letter-big').innerText = lData.l;
+            
+            // USE ALL 5 WORDS
+            let targetWords = lData.ops.map(o => o.w.toUpperCase());
+            this.philWords = targetWords;
+            this.philFound = 0;
+            this.philSelected = [];
+
+            // Render Targets
+            const tCont = document.getElementById('phil-targets'); tCont.innerHTML='';
+            targetWords.forEach(w => {
+                const tag = document.createElement('div'); tag.className='phil-word-tag'; tag.innerText = w; tag.id='ph-tag-'+w;
+                tCont.appendChild(tag);
+            });
+
+            // Generate Grid 10x10
+            const size = 10;
+            let grid = new Array(size*size).fill('');
+            // Use alphabet for the CURRENT language only
+            let alphabet = "";
+            if(this.lang === 'ru') alphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+            else if(this.lang === 'en') alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            else alphabet = "אבגדהוזחטיכלמנסעפצקרשת";
+
+            // Place Words
+            targetWords.forEach(word => {
+                let placed = false;
+                let attempts = 0;
+                while(!placed && attempts < 100) {
+                    attempts++;
+                    const dir = Math.random() > 0.5 ? 'h' : 'v';
+                    const r = Math.floor(Math.random() * size);
+                    const c = Math.floor(Math.random() * size);
+                    
+                    if(dir === 'h' && c + word.length > size) continue;
+                    if(dir === 'v' && r + word.length > size) continue;
+
+                    let fit = true;
+                    for(let k=0; k<word.length; k++) {
+                        const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
+                        if(grid[idx] !== '' && grid[idx] !== word[k]) fit = false;
+                    }
+                    
+                    if(fit) {
+                        for(let k=0; k<word.length; k++) {
+                            const idx = dir==='h' ? r*size + (c+k) : (r+k)*size + c;
+                            grid[idx] = word[k];
+                        }
+                        placed = true;
+                    }
+                }
+            });
+
+            // Fill empty
+            for(let i=0; i<grid.length; i++) {
+                if(grid[i] === '') grid[i] = alphabet[Math.floor(Math.random() * alphabet.length)];
+            }
+
+            // Render Grid
+            const gDiv = document.getElementById('phil-grid'); gDiv.innerHTML = '';
+            grid.forEach((char, i) => {
+                const cell = document.createElement('div'); cell.className = 'phil-cell'; cell.innerText = char;
+                cell.dataset.idx = i;
+                cell.onclick = () => this.handlePhilClick(cell, i, size, grid);
+                gDiv.appendChild(cell);
+            });
+        },
+
+        handlePhilClick: function(cell, idx, size, gridArray) {
+            if(cell.classList.contains('found')) return;
+            
+            if(cell.classList.contains('selected')) {
+                cell.classList.remove('selected');
+                this.philSelected = this.philSelected.filter(i => i !== idx);
+            } else {
+                cell.classList.add('selected');
+                this.philSelected.push(idx);
+            }
+
+            this.philSelected.sort((a,b) => a-b);
+            const selectedStr = this.philSelected.map(i => gridArray[i]).join('');
+            const revStr = selectedStr.split('').reverse().join('');
+
+            let match = this.philWords.find(w => w === selectedStr || w === revStr);
+            
+            if(match) {
+                const isLine = this.checkLinearity(this.philSelected, size);
+                if(isLine) {
+                    playWinSound();
+                    this.philSelected.forEach(i => {
+                        const c = document.querySelector(`.phil-cell[data-idx="${i}"]`);
+                        c.classList.remove('selected'); c.classList.add('found');
+                    });
+                    document.getElementById('ph-tag-'+match).classList.add('done');
+                    this.philWords = this.philWords.filter(w => w !== match);
+                    this.philSelected = [];
+                    
+                    if(this.philWords.length === 0) {
+                        fireConfetti();
+                        setTimeout(() => this.go('view-phil-menu'), 2000);
+                    }
+                }
+            }
+        },
+
+        checkLinearity: function(indices, size) {
+            if(indices.length < 2) return false;
+            const row0 = Math.floor(indices[0]/size);
+            const isHoriz = indices.every(i => Math.floor(i/size) === row0);
+            if(isHoriz) {
+                for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+1) return false;
+                return true;
+            }
+            const col0 = indices[0] % size;
+            const isVert = indices.every(i => i % size === col0);
+            if(isVert) {
+                for(let k=0; k<indices.length-1; k++) if(indices[k+1] !== indices[k]+size) return false;
+                return true;
+            }
+            return false;
+        },
+
+        // --- SENIOR SPELL ---
+        startSenior: function() {
+            this.go('view-game-senior');
+            document.getElementById('sen-img').innerText = this.currData.i;
+            document.getElementById('btn-sen-check').disabled = false;
+            this.senTarget = this.currData.w; 
+            this.senTargetSpeech = this.currData.s || this.currData.w;
+            this.senCurrent = [];
+            this.speak(this.senTargetSpeech);
+            const bar = document.getElementById('timer-bar'); bar.style.width='100%';
+            this.timeLeft=15; 
+            this.timer = setInterval(()=>{ this.timeLeft-=0.1; bar.style.width=(this.timeLeft/15*100)+'%'; if(this.timeLeft<=0) clearInterval(this.timer); },100);
+            this.renderPool(); this.renderSlots();
+        },
+        renderPool: function() {
+            const c = document.getElementById('sen-pool'); c.innerHTML='';
+            let pool = this.senTarget.split('');
+            if(this.isHardMode) { const a = DB[this.lang].letters.map(x=>x.l).join(''); for(let k=0;k<5;k++) pool.push(a[Math.floor(Math.random()*a.length)]); }
+            let arr = pool.map((ch,i)=>({c:ch, id:'ch'+i})); arr.sort(()=>Math.random()-0.5);
+            arr.forEach(x=>{ let b=document.createElement('div'); b.className='letter-chip'; b.id=x.id; b.innerText=x.c; b.onclick=()=>this.addLetter(x); c.appendChild(b); });
+        },
+        renderSlots: function() {
+            const c=document.getElementById('sen-slots'); c.innerHTML='';
+            for(let i=0; i<this.senTarget.length; i++) {
+                let s=document.createElement('div'); s.className='slot';
+                if(i<this.senCurrent.length) { s.innerText=this.senCurrent[i].c; s.className+=' filled'; s.onclick=()=>this.removeLetter(i); }
+                c.appendChild(s);
+            }
+        },
+        addLetter: function(x) {
+            if(this.senCurrent.length < this.senTarget.length) { this.senCurrent.push(x); document.getElementById(x.id).style.display='none'; this.renderSlots(); playTone(400,'sine',0.05); }
+        },
+        removeLetter: function(i) {
+            let x=this.senCurrent[i]; this.senCurrent.splice(i,1); document.getElementById(x.id).style.display='block'; this.renderSlots();
+        },
+        checkSenior: function() {
+            const ans = this.senCurrent.map(x=>x.c).join('');
+            if(ans.toLowerCase()===this.senTarget.toLowerCase()) {
+                clearInterval(this.timer);
+                let stars=1; if(this.timeLeft>7) stars=3; else if(this.timeLeft>3) stars=2;
+                document.querySelectorAll('.slot').forEach(s=>s.classList.add('correct'));
+                this.finishLevel(stars);
+            } else {
+                playLoseSound(); document.querySelectorAll('.slot').forEach(s=>s.classList.add('wrong'));
+                setTimeout(()=>{ this.senCurrent.forEach(x=>document.getElementById(x.id).style.display='block'); this.senCurrent=[]; this.renderSlots(); },1000);
+            }
+        },
+
+        // --- MATH ---
+        goToMathMenu: function() { this.go('view-math-menu'); },
+        startMathGame: function(type, range) {
+            this.mathMode = type; this.mathRange = range; this.mathStreak = 0; this.mathDifficulty = 1;
+            this.go('view-game-math'); this.nextMathProblem();
+        },
+        nextMathProblem: function() {
+            this.mathCurrent = ''; document.getElementById('math-streak-label').innerText = TRANS[this.lang].task + " " + (this.mathStreak+1);
+            let a, b, symbol;
+            let range = this.mathRange * this.mathDifficulty; 
+            if(this.mathMode === 'add') { a=Math.floor(Math.random()*(range-1))+1; b=Math.floor(Math.random()*(range-a))+1; this.mathAnswer=a+b; symbol='+'; } 
+            else if(this.mathMode === 'sub') { a=Math.floor(Math.random()*(range-1))+2; b=Math.floor(Math.random()*(a-1))+1; this.mathAnswer=a-b; symbol='-'; } 
+            else if(this.mathMode === 'mult') { a=Math.floor(Math.random()*9)+1; b=Math.floor(Math.random()*9)+1; this.mathAnswer=a*b; symbol='×'; } 
+            else if(this.mathMode === 'div') { b=Math.floor(Math.random()*8)+2; this.mathAnswer=Math.floor(Math.random()*9)+1; a=this.mathAnswer*b; symbol='÷'; }
+            document.getElementById('math-display').innerText = `${a} ${symbol} ${b} = ?`;
+        },
+        mathInput: function(v) {
+            if(v === 'del') this.mathCurrent = this.mathCurrent.slice(0, -1);
+            else if(this.mathCurrent.length < 4) this.mathCurrent += v;
+            const baseText = document.getElementById('math-display').innerText.split('=')[0];
+            document.getElementById('math-display').innerText = `${baseText}= ${this.mathCurrent}`;
+        },
+        checkMath: function() {
+            if(parseInt(this.mathCurrent) === this.mathAnswer) {
+                playWinSound(); fireConfetti(); this.mathStreak++;
+                if(this.mathStreak % 10 === 0) this.mathDifficulty++; 
+                setTimeout(() => this.nextMathProblem(), 1000); 
+            } else {
+                playLoseSound(); this.mathCurrent = '';
+                const baseText = document.getElementById('math-display').innerText.split('=')[0];
+                document.getElementById('math-display').innerText = `${baseText}= ?`;
+            }
+        },
+        showMathTables: function() { this.go('view-math-tables'); document.getElementById('table-display').classList.add('hidden'); },
+        renderTable: function(num) {
+            const disp = document.getElementById('table-display'); disp.classList.remove('hidden');
+            let html = ''; for(let i=1; i<=10; i++) html += `<div class="table-cell">${num} × ${i} = <b>${num*i}</b></div>`;
+            disp.innerHTML = html;
+        },
+        
+        showDictionary: function() {
+            const container = document.getElementById('dict-container'); container.innerHTML = '';
+            const list = DB[this.lang].letters;
+            const userLvl = this.progress[this.profile][this.lang].lvl;
+            for(let i=0; i<userLvl; i++) {
+                const lObj = list[i];
+                const div = document.createElement('div'); 
+                div.style.background = "white"; div.style.margin="10px"; div.style.padding="10px"; div.style.borderRadius="10px";
+                let html = `<h3>${lObj.l}</h3><div style="display:flex; flex-wrap:wrap; gap:10px;">`;
+                lObj.ops.forEach(op => { html += `<div style="border:1px solid #eee; padding:5px; border-radius:5px; cursor:pointer;" onclick="app.speak('${op.s||op.w}')">${op.i} ${op.w}</div>`; });
+                html += `</div>`;
+                div.innerHTML = html; container.appendChild(div);
+            }
+            this.go('view-dict');
+        },
+
+        finishLevel: function(stars) {
+            clearInterval(this.bubTimer); clearInterval(this.timer);
+            playWinSound(); fireConfetti();
+            const praises = TRANS[this.lang].yes;
+            setTimeout(() => this.speak(praises[Math.floor(Math.random()*praises.length)]), 500);
+
+            let user, maxLvl;
+            if(this.isMathMode && this.profile === 'junior') {
+                user = this.progress.junior.numbers; maxLvl = DB[this.lang].numbers.length;
+            } else {
+                user = this.progress[this.profile][this.lang]; maxLvl = DB[this.lang].letters.length;
+            }
+
+            if(this.level === user.lvl) { user.lvl++; user.stars[this.level] = stars; }
+            else if(this.level < user.lvl) { if(!user.stars[this.level] || stars > user.stars[this.level]) user.stars[this.level] = stars; }
+            this.save();
+
+            const nextIdx = this.level + 1;
+            if(nextIdx < maxLvl) {
+                this.timeoutFinish = setTimeout(() => { this.startLevel(nextIdx); }, 2000); 
+            } else {
+                this.timeoutFinish = setTimeout(() => { 
+                    this.goBackFromGame(); 
+                }, 2000);
+            }
+        },
+        toggleHardMode: function() { this.isHardMode = document.getElementById('chk-hardmode').checked; this.startSenior(); }
+    };
+
+    const canvas = document.getElementById("confetti"); const ctx = canvas.getContext("2d");
+    let particles = []; function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.onresize = resize; resize();
+    function fireConfetti() { particles = []; for(let i=0; i<100; i++) particles.push({ x: canvas.width/2, y: canvas.height/2, vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20 - 5, color: `hsl(${Math.random()*360}, 100%, 50%)`, life: 80 }); animate(); }
+    function animate() { ctx.clearRect(0,0,canvas.width,canvas.height); if(particles.length === 0) return; particles.forEach((p,i) => { p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life--; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); if(p.life <= 0) particles.splice(i, 1); }); requestAnimationFrame(animate); }
+    window.onload = () => app.init();
+    </script>
+</body>
+</html>
