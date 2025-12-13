@@ -1,815 +1,173 @@
-// ========================================
-// ALPHAFAMILY PRO - PROFESSIONAL EDITION
-// ========================================
-
-// Translations
-const TRANS = {
-    ru: {
-        subtitle: "Учим буквы и цифры весело!",
-        jun_t: "Малыши", jun_d: "до 6 лет", sen_t: "Старшие", sen_d: "до 10 лет",
-        sel_sub: "Выбери предмет:", l_let: "Буквы", l_math: "Математика", l_syllables: "Слоги",
-        map: "Карта уровней", dict: "Словарь", hard: "Сложно",
-        p_let: "Буква", p_num: "Цифра", paint: "Раскрась!", pop: "Лопай!",
-        write: "Напиши слово:", task: "Задания", table: "Таблица", choose: "Выбери цифру",
-        yes: ["Молодец!", "Отлично!", "Супер!", "Великолепно!"],
-        no: ["Попробуй еще", "Почти получилось!"], find: "Найди слова", find_p: "Найди:",
-        syl_basic: "По слогам", syl_advanced: "Собери слово", next_word: "Следующее слово", reset: "Сброс",
-        select_mode: "Выбери режим:", click_syllable: "Нажми на слог"
-    },
-    en: {
-        subtitle: "Learn letters and numbers with fun!",
-        jun_t: "Junior", jun_d: "up to 6", sen_t: "Senior", sen_d: "up to 10",
-        sel_sub: "Select Subject:", l_let: "Letters", l_math: "Math",
-        map: "Level Map", dict: "Dictionary", hard: "Hard",
-        p_let: "Letter", p_num: "Number", paint: "Paint it!", pop: "Pop it!",
-        write: "Write word:", task: "Tasks", table: "Table", choose: "Choose number",
-        yes: ["Good job!", "Excellent!", "Super!", "Amazing!"],
-        no: ["Try again", "Almost there!"], find: "Find Words", find_p: "Find:"
-    },
-    he: {
-        subtitle: "לומדים אותיות ומספרים בכיף!",
-        jun_t: "קטנטנים", jun_d: "עד גיל 6", sen_t: "גדולים", sen_d: "עד גיל 10",
-        sel_sub: "בחר נושא:", l_let: "אותיות", l_math: "חשבון",
-        map: "מפת שלבים", dict: "מילון", hard: "קשה",
-        p_let: "האות", p_num: "המספר", paint: "צייר!", pop: "פוצץ!",
-        write: "כתוב מילה:", task: "תרגילים", table: "לוח הכפל", choose: "בחר מספר",
-        yes: ["כל הכבוד!", "מצוין!", "סופר!", "נהדר!"],
-        no: ["נסה שוב", "כמעט הצלחת!"], find: "מצא מילים", find_p: "מצא:"
-    }
-};
-
-// Simplified DB - Full version will be in your final code
-const DB = {
-    ru: {
-        letters: [
-            { l: 'А', t: 'А', s: 'А', ops: [{ w: 'Арбуз', i: '🍉' }, { w: 'Автобус', i: '🚌' }, { w: 'Акула', i: '🦈' }] },
-            { l: 'Б', t: 'Б', s: 'Бэ', ops: [{ w: 'Банан', i: '🍌' }, { w: 'Белка', i: '🐿️' }, { w: 'Бык', i: '🐂' }] },
-            { l: 'В', t: 'В', s: 'Вэ', ops: [{ w: 'Волк', i: '🐺' }, { w: 'Ведро', i: '🪣' }, { w: 'Вода', i: '💧' }] }
-        ],
-        numbers: [
-            { v: 1, t: 'Один', s: 'Один', w: 'Один', i: '🍎' },
-            { v: 2, t: 'Два', s: 'Два', w: 'Два', i: '🍎🍎' },
-            { v: 3, t: 'Три', s: 'Три', w: 'Три', i: '🍎🍎🍎' }
-        ],
-        syllableWords: [
-            { word: 'ба-то́н', syllables: ['ба', 'то́н'], stressIndex: 1, emoji: '🥖' },
-            { word: 'ба-на́н', syllables: ['ба', 'на́н'], stressIndex: 1, emoji: '🍌' },
-            { word: 'ба́н-ка', syllables: ['ба́н', 'ка'], stressIndex: 0, emoji: '🏺' },
-            { word: 'ка-ба́н', syllables: ['ка', 'ба́н'], stressIndex: 1, emoji: '🐗' },
-            { word: 'со-ба́-ка', syllables: ['со', 'ба́', 'ка'], stressIndex: 1, emoji: '🐕' },
-            { word: 'о́к-но', syllables: ['о́к', 'но'], stressIndex: 0, emoji: '🪟' },
-            { word: 'ко́-ты', syllables: ['ко́', 'ты'], stressIndex: 0, emoji: '🐈' },
-            { word: 'пу-шо́к', syllables: ['пу', 'шо́к'], stressIndex: 1, emoji: '🐾' },
-            { word: 'ку-со́к', syllables: ['ку', 'со́к'], stressIndex: 1, emoji: '🍰' },
-            { word: 'мы́ш-ка', syllables: ['мы́ш', 'ка'], stressIndex: 0, emoji: '🐭' },
-            { word: 'ма́с-ка', syllables: ['ма́с', 'ка'], stressIndex: 0, emoji: '🎭' },
-            { word: 'ка́ш-ка', syllables: ['ка́ш', 'ка'], stressIndex: 0, emoji: '🥣' },
-            { word: 'ка́с-ка', syllables: ['ка́с', 'ка'], stressIndex: 0, emoji: '⛑️' },
-            { word: 'шу́т-ка', syllables: ['шу́т', 'ка'], stressIndex: 0, emoji: '😄' },
-            { word: 'ко-ле-со́', syllables: ['ко', 'ле', 'со́'], stressIndex: 2, emoji: '🎡' },
-            { word: 'пу́ш-ка', syllables: ['пу́ш', 'ка'], stressIndex: 0, emoji: '💣' },
-            { word: 'ме́-сто', syllables: ['ме́с', 'то'], stressIndex: 0, emoji: '📍' },
-            { word: 'ке́п-ка', syllables: ['ке́п', 'ка'], stressIndex: 0, emoji: '🧢' },
-            { word: 'бе́л-ка', syllables: ['бе́л', 'ка'], stressIndex: 0, emoji: '🐿️' },
-            { word: 'ша́п-ка', syllables: ['ша́п', 'ка'], stressIndex: 0, emoji: '🧶' },
-            { word: 'ка-ту́ш-ка', syllables: ['ка', 'ту́ш', 'ка'], stressIndex: 1, emoji: '🧵' },
-            { word: 'ма-ку́ш-ка', syllables: ['ма', 'ку́ш', 'ка'], stressIndex: 1, emoji: '👤' },
-            { word: 'ко́ш-ка', syllables: ['ко́ш', 'ка'], stressIndex: 0, emoji: '🐱' },
-            { word: 'ма-ту́ш-ка', syllables: ['ма', 'ту́ш', 'ка'], stressIndex: 1, emoji: '👵' },
-            { word: 'стре́л-ка', syllables: ['стре́л', 'ка'], stressIndex: 0, emoji: '➡️' },
-            { word: 'лу-на́', syllables: ['лу', 'на́'], stressIndex: 1, emoji: '🌙' },
-            { word: 'пы́ш-ка', syllables: ['пы́ш', 'ка'], stressIndex: 0, emoji: '🍩' },
-            { word: 'бу́л-ка', syllables: ['бу́л', 'ка'], stressIndex: 0, emoji: '🍞' }
-        ],
-        locale: 'ru-RU'
-    },
-    en: {
-        letters: [{ l: 'A', t: 'A', s: 'A', ops: [{ w: 'Apple', i: '🍎' }] }],
-        numbers: [{ v: 1, t: 'One', s: 'One', w: 'One', i: '🍎' }],
-        syllableWords: [
-            { word: 'ba-con', syllables: ['ba', 'con'], stressIndex: 0, emoji: '🥓' },
-            { word: 'ba-na-na', syllables: ['ba', 'na', 'na'], stressIndex: 1, emoji: '🍌' },
-            { word: 'bot-tle', syllables: ['bot', 'tle'], stressIndex: 0, emoji: '🍼' },
-            { word: 'ti-ger', syllables: ['ti', 'ger'], stressIndex: 0, emoji: '🐅' },
-            { word: 'pup-py', syllables: ['pup', 'py'], stressIndex: 0, emoji: '🐶' },
-            { word: 'win-dow', syllables: ['win', 'dow'], stressIndex: 0, emoji: '🪟' },
-            { word: 'kit-ty', syllables: ['kit', 'ty'], stressIndex: 0, emoji: '🐈' },
-            { word: 'cook-ie', syllables: ['cook', 'ie'], stressIndex: 0, emoji: '🍪' },
-            { word: 'ap-ple', syllables: ['ap', 'ple'], stressIndex: 0, emoji: '🍎' },
-            { word: 'mous-ie', syllables: ['mous', 'ie'], stressIndex: 0, emoji: '🐭' },
-            { word: 'pen-cil', syllables: ['pen', 'cil'], stressIndex: 0, emoji: '✏️' },
-            { word: 'ta-ble', syllables: ['ta', 'ble'], stressIndex: 0, emoji: '📋' },
-            { word: 'hel-met', syllables: ['hel', 'met'], stressIndex: 0, emoji: '⛑️' },
-            { word: 'fun-ny', syllables: ['fun', 'ny'], stressIndex: 0, emoji: '😄' },
-            { word: 'cir-cle', syllables: ['cir', 'cle'], stressIndex: 0, emoji: '⭕' },
-            { word: 'can-non', syllables: ['can', 'non'], stressIndex: 0, emoji: '💣' },
-            { word: 'pock-et', syllables: ['pock', 'et'], stressIndex: 0, emoji: '👝' },
-            { word: 'bas-ket', syllables: ['bas', 'ket'], stressIndex: 0, emoji: '🧺' },
-            { word: 'squir-rel', syllables: ['squir', 'rel'], stressIndex: 0, emoji: '🐿️' },
-            { word: 'mit-ten', syllables: ['mit', 'ten'], stressIndex: 0, emoji: '🧤' },
-            { word: 'but-ton', syllables: ['but', 'ton'], stressIndex: 0, emoji: '🔘' },
-            { word: 'ar-row', syllables: ['ar', 'row'], stressIndex: 0, emoji: '➡️' },
-            { word: 'moon', syllables: ['moon'], stressIndex: 0, emoji: '🌙' },
-            { word: 'do-nut', syllables: ['do', 'nut'], stressIndex: 0, emoji: '🍩' },
-            { word: 'bread', syllables: ['bread'], stressIndex: 0, emoji: '🍞' }
-        ],
-        locale: 'en-US'
-    },
-    he: {
-        letters: [{ l: 'א', t: 'א', s: 'אָלֶף', ops: [{ w: 'אריה', i: '🦁' }] }],
-        numbers: [{ v: 1, t: 'אחת', s: 'אַחַת', w: 'אחת', i: '🍎' }],
-        syllableWords: [
-            { word: 'לֶ-חֶם', syllables: ['לֶ', 'חֶם'], stressIndex: 0, emoji: '🍞' },
-            { word: 'בָּ-נָ-נָה', syllables: ['בָּ', 'נָ', 'נָה'], stressIndex: 1, emoji: '🍌' },
-            { word: 'בַּ-קְ-בּוּק', syllables: ['בַּ', 'קְ', 'בּוּק'], stressIndex: 2, emoji: '🍼' },
-            { word: 'חָ-זִיר', syllables: ['חָ', 'זִיר'], stressIndex: 1, emoji: '🐗' },
-            { word: 'כֶּ-לֶב', syllables: ['כֶּ', 'לֶב'], stressIndex: 1, emoji: '🐕' },
-            { word: 'חַ-לּוֹן', syllables: ['חַ', 'לּוֹן'], stressIndex: 1, emoji: '🪟' },
-            { word: 'חָ-תוּל', syllables: ['חָ', 'תוּל'], stressIndex: 1, emoji: '🐈' },
-            { word: 'עוּ-גָה', syllables: ['עוּ', 'גָה'], stressIndex: 1, emoji: '🍰' },
-            { word: 'עַ-כְ-בָּר', syllables: ['עַ', 'כְ', 'בָּר'], stressIndex: 2, emoji: '🐭' },
-            { word: 'מַ-סֵּ-כָה', syllables: ['מַ', 'סֵּ', 'כָה'], stressIndex: 2, emoji: '🎭' },
-            { word: 'דַּ-יָּה', syllables: ['דַּ', 'יָּה'], stressIndex: 1, emoji: '🥣' },
-            { word: 'כּוֹ-בַע', syllables: ['כּוֹ', 'בַע'], stressIndex: 1, emoji: '⛑️' },
-            { word: 'בְּ-דִי-חָה', syllables: ['בְּ', 'דִי', 'חָה'], stressIndex: 2, emoji: '😄' },
-            { word: 'גַּל-גַּל', syllables: ['גַּל', 'גַּל'], stressIndex: 1, emoji: '🎡' },
-            { word: 'תּוֹ-תָח', syllables: ['תּוֹ', 'תָח'], stressIndex: 1, emoji: '💣' },
-            { word: 'מָ-קוֹם', syllables: ['מָ', 'קוֹם'], stressIndex: 1, emoji: '📍' },
-            { word: 'כּוֹ-בַע', syllables: ['כּוֹ', 'בַע'], stressIndex: 1, emoji: '🧢' },
-            { word: 'סְ-נַאי', syllables: ['סְ', 'נַאי'], stressIndex: 1, emoji: '🐿️' },
-            { word: 'כּוֹ-בַע', syllables: ['כּוֹ', 'בַע'], stressIndex: 1, emoji: '🧶' },
-            { word: 'חָ-תוּל', syllables: ['חָ', 'תוּל'], stressIndex: 1, emoji: '🐱' },
-            { word: 'חֵץ', syllables: ['חֵץ'], stressIndex: 0, emoji: '➡️' },
-            { word: 'יָ-רֵ-חַ', syllables: ['יָ', 'רֵ', 'חַ'], stressIndex: 1, emoji: '🌙' },
-            { word: 'סֻ-פְ-גָּנִיָּה', syllables: ['סֻ', 'פְ', 'גָּנִיָּה'], stressIndex: 2, emoji: '🍩' },
-            { word: 'לֶ-חֶם', syllables: ['לֶ', 'חֶם'], stressIndex: 1, emoji: '🍞' }
-        ],
-        locale: 'he-IL'
-    }
-};
-
-// ========================================
-// AUDIO SYSTEM
-// ========================================
-
-class AudioManager {
-    constructor() {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.masterVolume = 0.3;
-    }
-
-    wakeUp() {
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-    }
-
-    playTone(frequency, type, duration, volume = 1) {
-        this.wakeUp();
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
-        gain.gain.setValueAtTime(this.masterVolume * volume, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
-    }
-
-    playSuccess() {
-        this.playTone(523.25, 'sine', 0.1);
-        setTimeout(() => this.playTone(659.25, 'sine', 0.1), 100);
-        setTimeout(() => this.playTone(783.99, 'sine', 0.3), 200);
-    }
-
-    playPop() {
-        this.playTone(800, 'sine', 0.05, 0.5);
-    }
-
-    playError() {
-        this.playTone(150, 'sawtooth', 0.3, 0.4);
-    }
-
-    playClick() {
-        this.playTone(600, 'sine', 0.05, 0.3);
-    }
-}
-
-const audio = new AudioManager();
-
-// ========================================
-// PARTICLE SYSTEM
-// ========================================
-
-class ParticleSystem {
-    constructor() {
-        this.container = document.getElementById('particles');
-    }
-
-    createParticle(x, y, emoji, duration = 1000) {
-        const particle = document.createElement('div');
-        particle.style.cssText = `
-            position: absolute;
-            left: ${x}px;
-            top: ${y}px;
-            font-size: 2rem;
-            pointer-events: none;
-            z-index: 1000;
-            animation: particleRise ${duration}ms ease-out forwards;
-        `;
-        particle.textContent = emoji;
-        this.container.appendChild(particle);
-
-        setTimeout(() => particle.remove(), duration);
-    }
-
-    burst(x, y, count = 10) {
-        const emojis = ['✨', '⭐', '🌟', '💫', '🎉', '🎊'];
-        for (let i = 0; i < count; i++) {
-            setTimeout(() => {
-                const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-                const offsetX = (Math.random() - 0.5) * 100;
-                const offsetY = (Math.random() - 0.5) * 100;
-                this.createParticle(x + offsetX, y + offsetY, emoji);
-            }, i * 50);
-        }
-    }
-}
-
-const particles = new ParticleSystem();
-
-// Add CSS animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes particleRise {
-        0% { opacity: 1; transform: translateY(0) scale(1); }
-        100% { opacity: 0; transform: translateY(-100px) scale(0); }
-    }
-`;
-document.head.appendChild(style);
-
-// ========================================
-// CONFETTI SYSTEM
-// ========================================
-
-class ConfettiSystem {
-    constructor() {
-        this.canvas = document.getElementById('confetti');
-        this.ctx = this.canvas.getContext('2d');
-        this.particles = [];
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-    }
-
-    resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-    }
-
-    fire() {
-        this.particles = [];
-        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
-
-        for (let i = 0; i < 150; i++) {
-            this.particles.push({
-                x: this.canvas.width / 2,
-                y: this.canvas.height / 2,
-                vx: (Math.random() - 0.5) * 20,
-                vy: (Math.random() - 0.5) * 20 - 5,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                size: Math.random() * 8 + 4,
-                rotation: Math.random() * 360,
-                rotationSpeed: (Math.random() - 0.5) * 10,
-                life: 100
-            });
-        }
-
-        this.animate();
-    }
-
-    animate() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        if (this.particles.length === 0) return;
-
-        this.particles.forEach((p, i) => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.5; // Gravity
-            p.rotation += p.rotationSpeed;
-            p.life--;
-
-            this.ctx.save();
-            this.ctx.translate(p.x, p.y);
-            this.ctx.rotate(p.rotation * Math.PI / 180);
-            this.ctx.fillStyle = p.color;
-            this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-            this.ctx.restore();
-
-            if (p.life <= 0) this.particles.splice(i, 1);
-        });
-
-        requestAnimationFrame(() => this.animate());
-    }
-}
-
-const confetti = new ConfettiSystem();
-
-// ========================================
-// MAIN APP
-// ========================================
-
-const app = {
-    // State
-    profile: '',
-    lang: 'ru',
-    level: 0,
-    isMathMode: false,
-
-    // Progress
-    progress: {
-        junior: {
-            ru: { lvl: 0, stars: [] },
-            en: { lvl: 0, stars: [] },
-            he: { lvl: 0, stars: [] },
-            numbers: { lvl: 0, stars: [] }
-        },
-        senior: {
-            ru: { lvl: 0, stars: [] },
-            en: { lvl: 0, stars: [] },
-            he: { lvl: 0, stars: [] }
-        }
-    },
-
-    // Initialization
-    init() {
-        this.loadProgress();
-        this.updateLocalization();
-        this.hideLoading();
-    },
-
-    // Loading
-    hideLoading() {
-        setTimeout(() => {
-            const loading = document.getElementById('loading-screen');
-            loading.classList.add('hidden');
-        }, 1500);
-    },
-
-    // Progress Management
-    loadProgress() {
-        const saved = localStorage.getItem('alphaFamilyPro');
-        if (saved) {
-            const data = JSON.parse(saved);
-            if (data.progress) this.progress = data.progress;
-            if (data.lang) this.lang = data.lang;
-        }
-    },
-
-    saveProgress() {
-        localStorage.setItem('alphaFamilyPro', JSON.stringify({
-            progress: this.progress,
-            lang: this.lang
-        }));
-    },
-
-    // Navigation
-    go(screenId) {
-        audio.playClick();
-        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
-    },
-
-    goBackFromMap() {
-        this.go('view-roles');
-    },
-
-    // Language
-    toggleLang() {
-        const langs = ['ru', 'en', 'he'];
-        const currentIndex = langs.indexOf(this.lang);
-        this.setLang(langs[(currentIndex + 1) % langs.length]);
-    },
-
-    setLang(lang) {
-        this.lang = lang;
-        document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
-        const flags = { ru: '🇷🇺', en: '🇺🇸', he: '🇮🇱' };
-        document.querySelector('.lang-flag').textContent = flags[lang];
-        this.updateLocalization();
-        this.saveProgress();
-    },
-
-    updateLocalization() {
-        const t = TRANS[this.lang];
-        document.getElementById('lbl-subtitle').textContent = t.subtitle;
-        document.getElementById('lbl-jun-title').textContent = t.jun_t;
-        document.getElementById('lbl-jun-desc').textContent = t.jun_d;
-        document.getElementById('lbl-sen-title').textContent = t.sen_t;
-        document.getElementById('lbl-sen-desc').textContent = t.sen_d;
-        document.getElementById('lbl-select-subj').textContent = t.sel_sub;
-        document.getElementById('lbl-letters').textContent = t.l_let;
-        document.getElementById('lbl-math').textContent = t.l_math;
-        document.getElementById('lbl-map').textContent = t.map;
-        document.getElementById('lbl-dict').textContent = t.dict;
-        document.getElementById('lbl-find').textContent = t.find;
-
-        // Syllable labels
-        const lblSyllables = document.getElementById('lbl-syllables');
-        if (lblSyllables) lblSyllables.textContent = t.l_syllables;
-        const lblSylSelect = document.getElementById('lbl-syllable-select');
-        if (lblSylSelect) lblSylSelect.textContent = t.select_mode;
-        const lblSylBasic = document.getElementById('lbl-syl-basic');
-        if (lblSylBasic) lblSylBasic.textContent = t.syl_basic;
-        const lblSylAdv = document.getElementById('lbl-syl-advanced');
-        if (lblSylAdv) lblSylAdv.textContent = t.syl_advanced;
-        const lblNextWord = document.getElementById('lbl-next-word');
-        if (lblNextWord) lblNextWord.textContent = t.next_word;
-        const lblReset = document.getElementById('lbl-reset');
-        if (lblReset) lblReset.textContent = t.reset;
-    },
-
-    // Profile Selection
-    setProfile(profile) {
-        this.profile = profile;
-        confetti.fire();
-
-        if (profile === 'junior') {
-            this.isMathMode = false;
-            this.renderMap();
-            setTimeout(() => this.go('view-map'), 600);
-        } else {
-            setTimeout(() => this.go('view-senior-menu'), 600);
-        }
-    },
-
-    startSeniorLetters() {
-        this.isMathMode = false;
-        this.renderMap();
-        this.go('view-map');
-    },
-
-    goToMathMenu() {
-        this.go('view-math-menu');
-    },
-
-    // Map Rendering
-    renderMap() {
-        const container = document.getElementById('map-container');
-        container.innerHTML = '';
-
-        let list, current, starsArr;
-        if (this.isMathMode && this.profile === 'junior') {
-            list = DB[this.lang].numbers;
-            current = this.progress.junior.numbers.lvl;
-            starsArr = this.progress.junior.numbers.stars;
-        } else {
-            list = DB[this.lang].letters;
-            current = this.progress[this.profile][this.lang].lvl;
-            starsArr = this.progress[this.profile][this.lang].stars;
-        }
-
-        list.forEach((item, idx) => {
-            const node = document.createElement('div');
-            node.textContent = item.l || item.v;
-
-            if (idx < current) {
-                node.className = 'level-node completed';
-                node.onclick = () => this.startLevel(idx);
-
-                const stars = starsArr[idx] || 0;
-                let starsHTML = '<div class="level-stars">';
-                for (let i = 0; i < 3; i++) {
-                    starsHTML += `<div class="tiny-star ${i < stars ? 'gold' : ''}">★</div>`;
-                }
-                starsHTML += '</div>';
-                node.innerHTML += starsHTML;
-            } else if (idx === current) {
-                node.className = 'level-node unlocked';
-                node.onclick = () => this.startLevel(idx);
-            } else {
-                node.className = 'level-node locked';
-            }
-
-            container.appendChild(node);
-
-            // Stagger animation
-            setTimeout(() => {
-                node.style.animation = 'fadeInUp 0.5s ease forwards';
-            }, idx * 50);
-        });
-    },
-
-    // Level Start
-    startLevel(idx) {
-        this.level = idx;
-        console.log('Starting level:', idx);
-        // Game logic will be added in full version
-
-        // For demo, just show success after delay
-        setTimeout(() => {
-            this.finishLevel(3);
-        }, 2000);
-    },
-
-    // Finish Level
-    finishLevel(stars) {
-        audio.playSuccess();
-        confetti.fire();
-
-        const center = {
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-        };
-        particles.burst(center.x, center.y, 20);
-
-        let user, maxLvl;
-        if (this.isMathMode && this.profile === 'junior') {
-            user = this.progress.junior.numbers;
-            maxLvl = DB[this.lang].numbers.length;
-        } else {
-            user = this.progress[this.profile][this.lang];
-            maxLvl = DB[this.lang].letters.length;
-        }
-
-        if (this.level === user.lvl) {
-            user.lvl++;
-            user.stars[this.level] = stars;
-        } else if (this.level < user.lvl) {
-            if (!user.stars[this.level] || stars > user.stars[this.level]) {
-                user.stars[this.level] = stars;
-            }
-        }
-
-        this.saveProgress();
-
-        // Speak praise
-        const praises = TRANS[this.lang].yes;
-        const praise = praises[Math.floor(Math.random() * praises.length)];
-        this.speak(praise);
-
-        // Next level or return to map
-        setTimeout(() => {
-            const nextIdx = this.level + 1;
-            if (nextIdx < maxLvl) {
-                this.startLevel(nextIdx);
-            } else {
-                this.renderMap();
-                this.go('view-map');
-            }
-        }, 2000);
-    },
-
-    // Speech
-    speak(text) {
-        audio.wakeUp();
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = DB[this.lang].locale;
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
-    },
-
-    // ==================================
-    // SYLLABLE EXERCISES
-    // ==================================
-
-    currentSyllableWord: 0,
-    selectedSyllables: [],
-
-    goToSyllableMenu() {
-        this.go('view-syllable-menu');
-    },
-
-    startSyllableBasic() {
-        this.currentSyllableWord = 0;
-        this.renderSyllableBasic();
-        this.go('view-syllable-basic');
-    },
-
-    startSyllableAdvanced() {
-        this.currentSyllableWord = 0;
-        this.renderSyllableAdvanced();
-        this.go('view-syllable-advanced');
-    },
-
-    renderSyllableBasic() {
-        const words = DB[this.lang].syllableWords;
-        if (!words || words.length === 0) return;
-
-        const wordData = words[this.currentSyllableWord];
-
-        // Update emoji
-        document.getElementById('syllable-emoji').textContent = wordData.emoji;
-
-        // Update word display (show the word without hyphens for display)
-        const wordDisplay = wordData.word.replace(/-/g, '').replace(/́/g, '');
-        document.getElementById('syllable-word').textContent = wordDisplay;
-
-        // Update hint
-        const t = TRANS[this.lang];
-        document.getElementById('syllable-hint').textContent = t.click_syllable;
-
-        // Create syllable tiles
-        const container = document.getElementById('syllable-tiles');
-        container.innerHTML = '';
-
-        wordData.syllables.forEach((syllable, index) => {
-            const tile = document.createElement('div');
-            tile.className = 'syllable-tile';
-            if (index === wordData.stressIndex) {
-                tile.classList.add('stressed');
-            }
-            tile.textContent = syllable.replace(/́/g, ''); // Remove combining acute accent for display
-
-            tile.onclick = () => {
-                audio.playClick();
-                // Highlight tile
-                document.querySelectorAll('.syllable-tile').forEach(t => t.classList.remove('active'));
-                tile.classList.add('active');
-
-                // Speak syllable
-                this.speak(syllable.replace(/́/g, ''));
-
-                // Remove active class after animation
-                setTimeout(() => {
-                    tile.classList.remove('active');
-                }, 600);
-            };
-
-            container.appendChild(tile);
-
-            // Stagger animation
-            setTimeout(() => {
-                tile.style.animation = 'syllablePop 0.4s ease forwards';
-            }, index * 100);
-        });
-    },
-
-    nextSyllableWord() {
-        const words = DB[this.lang].syllableWords;
-        audio.playSuccess();
-
-        this.currentSyllableWord++;
-        if (this.currentSyllableWord >= words.length) {
-            this.currentSyllableWord = 0;
-        }
-
-        this.renderSyllableBasic();
-    },
-
-    renderSyllableAdvanced() {
-        const words = DB[this.lang].syllableWords;
-        if (!words || words.length === 0) return;
-
-        const wordData = words[this.currentSyllableWord];
-        this.selectedSyllables = [];
-
-        // Update emoji
-        document.getElementById('advanced-emoji').textContent = wordData.emoji;
-
-        // Clear assembly zone
-        const assemblyZone = document.getElementById('assembly-zone');
-        assemblyZone.innerHTML = '';
-        assemblyZone.style.minHeight = '80px';
-
-        // Create scrambled syllables
-        const scrambledTiles = document.getElementById('scrambled-tiles');
-        scrambledTiles.innerHTML = '';
-
-        // Scramble the syllables
-        const syllables = [...wordData.syllables];
-        for (let i = syllables.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [syllables[i], syllables[j]] = [syllables[j], syllables[i]];
-        }
-
-        syllables.forEach((syllable, index) => {
-            const tile = document.createElement('div');
-            tile.className = 'syllable-tile scrambled';
-            tile.textContent = syllable.replace(/́/g, '');
-            tile.dataset.syllable = syllable;
-
-            tile.onclick = () => {
-                if (tile.classList.contains('used')) return;
-
-                audio.playClick();
-                this.addSyllableToAssembly(syllable, tile);
-            };
-
-            scrambledTiles.appendChild(tile);
-
-            // Stagger animation
-            setTimeout(() => {
-                tile.style.animation = 'syllablePop 0.4s ease forwards';
-            }, index * 100);
-        });
-    },
-
-    addSyllableToAssembly(syllable, sourceTile) {
-        const wordData = DB[this.lang].syllableWords[this.currentSyllableWord];
-        const assemblyZone = document.getElementById('assembly-zone');
-
-        // Mark source tile as used
-        sourceTile.classList.add('used');
-
-        // Add to selected array
-        this.selectedSyllables.push(syllable);
-
-        // Create tile in assembly zone
-        const tile = document.createElement('div');
-        tile.className = 'syllable-tile assembled';
-        tile.textContent = syllable.replace(/́/g, '');
-        assemblyZone.appendChild(tile);
-
-        // Check if word is complete
-        if (this.selectedSyllables.length === wordData.syllables.length) {
-            setTimeout(() => {
-                this.checkSyllableAssembly();
-            }, 300);
-        }
-    },
-
-    checkSyllableAssembly() {
-        const wordData = DB[this.lang].syllableWords[this.currentSyllableWord];
-        const correct = this.selectedSyllables.every((syl, i) => syl === wordData.syllables[i]);
-
-        if (correct) {
-            audio.playSuccess();
-            confetti.fire();
-
-            const center = {
-                x: window.innerWidth / 2,
-                y: window.innerHeight / 2
-            };
-            particles.burst(center.x, center.y, 15);
-
-            // Speak praise
-            const praises = TRANS[this.lang].yes;
-            const praise = praises[Math.floor(Math.random() * praises.length)];
-            this.speak(praise);
-
-            // Move to next word
-            setTimeout(() => {
-                this.currentSyllableWord++;
-                const words = DB[this.lang].syllableWords;
-                if (this.currentSyllableWord >= words.length) {
-                    this.currentSyllableWord = 0;
-                }
-                this.renderSyllableAdvanced();
-            }, 2000);
-        } else {
-            audio.playError();
-
-            // Shake animation
-            const assemblyZone = document.getElementById('assembly-zone');
-            assemblyZone.style.animation = 'shake 0.5s ease';
-            setTimeout(() => {
-                assemblyZone.style.animation = '';
-            }, 500);
-
-            // Speak error message
-            const errors = TRANS[this.lang].no;
-            const error = errors[Math.floor(Math.random() * errors.length)];
-            this.speak(error);
-
-            // Auto reset after a delay
-            setTimeout(() => {
-                this.resetSyllableAssembly();
-            }, 1500);
-        }
-    },
-
-    resetSyllableAssembly() {
-        audio.playClick();
-        this.selectedSyllables = [];
-
-        // Clear assembly zone
-        const assemblyZone = document.getElementById('assembly-zone');
-        assemblyZone.innerHTML = '';
-
-        // Reset scrambled tiles
-        document.querySelectorAll('.syllable-tile.scrambled').forEach(tile => {
-            tile.classList.remove('used');
-        });
-    },
-
-    // Dictionary placeholder
-    showDictionary() {
-        console.log('Dictionary');
-    },
-
-    showPhilwordMenu() {
-        console.log('Philword menu');
-    }
-};
-
-// ========================================
-// START APP
-// ========================================
-
-window.addEventListener('load', () => {
-    app.init();
-});
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AlphaFamily Pro - Учим Буквы и Цифры</title>
+    <meta name="description" content="Профессиональная образовательная игра для детей. Учим буквы, цифры, слова!">
+    <meta name="theme-color" content="#6366F1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="syllable-styles.css">
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="logo-circle">
+                    <span class="logo-text">ABC</span>
+                </div>
+            </div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Загрузка...</p>
+        </div>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti"></canvas>
+
+    <!-- Particles Container -->
+    <div id="particles"></div>
+
+    <!-- Language Button -->
+    <button class="lang-btn" onclick="app.toggleLang()" aria-label="Change language">
+        <span class="lang-flag">🇷🇺</span>
+    </button>
+
+    <!-- 1. MAIN MENU -->
+    <div id="view-roles" class="screen center-content">
+        <div class="menu-container">
+            <div class="menu-header">
+                <h1 class="game-title">
+                    <span class="title-gradient">Alpha</span><span class="title-accent">Family</span>
+                </h1>
+                <p class="game-subtitle" id="lbl-subtitle">Учим буквы и цифры весело!</p>
+            </div>
+
+            <div class="menu-cards">
+                <div class="role-card junior-card" onclick="app.setProfile('junior')">
+                    <div class="card-glow junior-glow"></div>
+                    <div class="role-icon-wrapper">
+                        <span class="role-icon">👶</span>
+                        <div class="icon-particles"></div>
+                    </div>
+                    <div class="role-content">
+                        <h2 class="role-title" id="lbl-jun-title">Малыши</h2>
+                        <p class="role-desc" id="lbl-jun-desc">до 6 лет</p>
+                    </div>
+                    <div class="card-shine"></div>
+                </div>
+
+                <div class="role-card senior-card" onclick="app.setProfile('senior')">
+                    <div class="card-glow senior-glow"></div>
+                    <div class="role-icon-wrapper">
+                        <span class="role-icon">🚀</span>
+                        <div class="icon-particles"></div>
+                    </div>
+                    <div class="role-content">
+                        <h2 class="role-title" id="lbl-sen-title">Старшие</h2>
+                        <p class="role-desc" id="lbl-sen-desc">до 10 лет</p>
+                    </div>
+                    <div class="card-shine"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SENIOR SUB-MENU -->
+    <div id="view-senior-menu" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-roles')" aria-label="Home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+
+        <div class="submenu-container">
+            <h2 class="section-title" id="lbl-select-subj">Выбери предмет:</h2>
+            <div id="view-map" class="screen hidden">
+                <button class="btn-home" onclick="app.goBackFromMap()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                </button>
+
+                <div class="map-container-wrapper">
+                    <div class="map-header">
+                        <h2 class="section-title animated-title">
+                            <span class="title-icon">🗺️</span>
+                            <span id="lbl-map">Карта уровней</span>
+                        </h2>
+                    </div>
+
+                    <div class="map-actions">
+                        <button class="action-btn dict-btn" onclick="app.showDictionary()">
+                            <span class="btn-icon">📖</span>
+                            <span id="lbl-dict">Словарь</span>
+                        </button>
+                        <button class="action-btn find-btn" id="btn-philwords" onclick="app.showPhilwordMenu()">
+                            <span class="btn-icon">🔎</span>
+                            <span id="lbl-find">Найди слова</span>
+                        </button>
+                    </div>
+
+                    <div class="level-path" id="map-container"></div>
+                </div>
+            </div>
+
+
+            <!-- 4. SYLLABLE MENU -->
+            <div id="view-syllable-menu" class="screen center-content hidden">
+                <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                </button>
+
+                <div class="submenu-container">
+                    <h2 class="section-title" id="lbl-syllable-select">Выбери режим:</h2>
+                    <div class="subject-grid">
+                        <button class="subject-btn letters-btn" onclick="app.startSyllableBasic()">
+                            <div class="btn-icon">📖</div>
+                            <span id="lbl-syl-basic">По слогам</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                        <button class="subject-btn math-btn" onclick="app.startSyllableAdvanced()">
+                            <div class="btn-icon">🧩</div>
+                            <span id="lbl-syl-advanced">Собери слово</span>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. SYLLABLE BASIC MODE -->
+            <div id="view-syllable-basic" class="screen center-content hidden">
+                <button class="btn-home" onclick="app.go('view-syllable-menu')" aria-label="Back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    </svg>
+                </button>
+
+                <div class="syllable-exercise-container">
+                    <div class="word-display-area">
+                        <div class="word-emoji" id="syllable-emoji">🐱</div>
+                        <h2 class="word-title" id="syllable-word">кош-ка</h2>
+                        <p class="syllable-hint" id="syllable-hint">Нажми на слог</p>
+                    </div>
+
+                    <div class="syllable-tiles-container" id="syllable-tiles">
+                        <!-- Syllable tiles will be dynamically generated -->
+                    </div>
+
+                    <div class="syllable-controls">
+                        <button class="action-btn" id="btn-next-word" onclick="app.nextSyllableWord()">
+                            <span class="btn-icon">➡️</span>
+
+</html>
