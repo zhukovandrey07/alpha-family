@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="syllable-styles.css">
 </head>
 
 <body>
@@ -42,8 +41,8 @@
     </button>
 
     <!-- Mute Button -->
-    <button class="mute-btn" onclick="app.toggleMute()" aria-label="Toggle sound">
-        <span class="mute-icon" id="mute-icon">🔊</span>
+    <button class="lang-btn" style="top: 90px;" onclick="app.toggleMute()" aria-label="Toggle Sound">
+        <span class="lang-flag" id="mute-icon">🔊</span>
     </button>
 
     <!-- 1. MAIN MENU -->
@@ -98,17 +97,17 @@
             <h2 class="section-title" id="lbl-select-subj">Выбери предмет:</h2>
             <div class="subject-grid">
                 <button class="subject-btn letters-btn" onclick="app.startSubject('letters')">
-                    <div class="btn-icon">🔤</div>
+                    <div class="btn-icon">🅰️</div>
                     <span id="lbl-letters">Буквы</span>
                     <div class="btn-ripple"></div>
                 </button>
                 <button class="subject-btn math-btn" onclick="app.goToMathMenu()">
                     <div class="btn-icon">🔢</div>
-                    <span id="lbl-math">Математика</span>
+                    <span id="lbl-math">Цифры</span>
                     <div class="btn-ripple"></div>
                 </button>
-                <button class="subject-btn syllable-btn" onclick="app.goToSyllableMenu()">
-                    <div class="btn-icon">📝</div>
+                <button class="subject-btn syllables-btn" onclick="app.go('view-syllable-menu')">
+                    <div class="btn-icon">📖</div>
                     <span id="lbl-syllables">Слоги</span>
                     <div class="btn-ripple"></div>
                 </button>
@@ -187,9 +186,7 @@
                 <p class="syllable-hint" id="syllable-hint">Нажми на слог</p>
             </div>
 
-            <div class="syllable-tiles-container" id="syllable-tiles">
-                <!-- Syllable tiles will be dynamically generated -->
-            </div>
+            <div class="syllable-tiles-container" id="syllable-tiles"></div>
 
             <div class="syllable-controls">
                 <button class="action-btn" id="btn-next-word" onclick="app.nextSyllableWord()">
@@ -210,20 +207,14 @@
 
         <div class="syllable-exercise-container">
             <div class="word-display-area">
-                <div class="word-emoji" id="advanced-emoji">🐱</div>
-                <p class="syllable-hint">Собери слово из слогов:</p>
+                <div class="word-emoji" id="advanced-emoji">🍌</div>
+                <div class="assembly-zone" id="assembly-zone"></div>
             </div>
 
-            <div class="syllable-assembly-zone" id="assembly-zone">
-                <!-- Selected syllables will appear here -->
-            </div>
-
-            <div class="syllable-scrambled-container" id="scrambled-tiles">
-                <!-- Scrambled syllable tiles will be dynamically generated -->
-            </div>
+            <div class="scrambled-tiles-container" id="scrambled-tiles"></div>
 
             <div class="syllable-controls">
-                <button class="action-btn" id="btn-reset" onclick="app.resetSyllableAssembly()">
+                <button class="action-btn reset-btn" id="btn-reset" onclick="SyllableGame.resetAssembly()">
                     <span class="btn-icon">🔄</span>
                     <span id="lbl-reset">Сброс</span>
                 </button>
@@ -233,7 +224,7 @@
 
     <!-- 7. MATH GAME -->
     <div id="view-math-game" class="screen center-content hidden">
-        <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
+        <button class="btn-home" onclick="app.go('view-roles')" aria-label="Home">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             </svg>
@@ -241,22 +232,150 @@
 
         <div class="math-game-container">
             <div class="math-header">
-                <div class="math-score">⭐ <span id="math-score">0</span></div>
-                <div class="math-level">Level <span id="math-level">1</span></div>
+                <div class="score-board">
+                    <span>⭐ <span id="math-score">0</span></span>
+                    <span>Lvl <span id="math-level">1</span></span>
+                </div>
             </div>
 
-            <div class="math-problem-area" id="math-problem-area">
-                <!-- Dynamic Content: Counting items or Equation -->
-                <div class="math-visual-items" id="math-visual-items"></div>
-                <div class="math-equation" id="math-equation"></div>
+            <div class="math-problem-area">
+                <div id="math-visual-items" class="math-visuals"></div>
+                <div id="math-equation" class="math-equation"></div>
             </div>
 
-            <div class="math-options-grid" id="math-options">
-                <!-- Answer buttons -->
+            <div id="math-options" class="math-options-grid"></div>
+            <div id="table-display" class="table-display-grid hidden"></div>
+        </div>
+    </div>
+
+    <!-- 8. JUNIOR GAME -->
+    <div id="view-junior-game" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-map')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div id="junior-game-area" class="junior-game-area" style="width: 100%; max-width: 600px;"></div>
+    </div>
+
+    <!-- 9. SENIOR SPELLING GAME -->
+    <div id="view-game-senior" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div class="game-container" style="text-align: center; width: 100%; max-width: 600px;">
+            <div class="senior-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="sen-image" id="sen-img" style="font-size: 4rem;"></div>
+                <div class="sen-controls">
+                    <label class="difficulty-toggle">
+                        <input type="checkbox" id="chk-hardmode" onchange="SeniorGame.toggleHardMode()">
+                        <span id="lbl-hard">Hard</span>
+                    </label>
+                </div>
+            </div>
+            <h2 id="lbl-task-write" style="margin-bottom: 10px;">Write word:</h2>
+            <div class="slot-container" id="sen-slots"></div>
+            <div class="timer-wrap">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+            <div class="pool-container" id="sen-pool"></div>
+            <button class="action-btn" onclick="SeniorGame.speakCurrent()"
+                style="margin-top: 20px; margin-left: auto; margin-right: auto;">🔊</button>
+        </div>
+    </div>
+
+    <!-- 10. PHILWORDS MENU -->
+    <div id="view-phil-menu" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-map')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div class="submenu-container">
+            <h2 class="section-title">Philwords</h2>
+            <div class="level-path" id="phil-menu-container"></div>
+        </div>
+    </div>
+
+    <!-- 11. PHILWORDS GAME -->
+    <div id="view-game-phil" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-phil-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div class="phil-container" style="width: 100%; max-width: 500px;">
+            <div class="phil-header" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                <div class="phil-letter-big" id="phil-letter-big"
+                    style="font-size: 3rem; font-weight: bold; color: var(--primary);">A</div>
+                <div class="phil-hint" id="lbl-phil-hint" style="font-size: 1.2rem;">Find words:</div>
+            </div>
+            <div class="phil-targets" id="phil-targets"></div>
+            <div class="phil-grid" id="phil-grid"></div>
+        </div>
+    </div>
+
+    <!-- 12. DICTIONARY -->
+    <div id="view-dict" class="screen hidden">
+        <button class="btn-home" onclick="app.go('view-map')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div class="map-container-wrapper">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 20px;">Dictionary</h2>
+            <div class="dict-list" id="dict-container" style="margin: 0 auto;"></div>
+        </div>
+    </div>
+
+    <!-- 13. SPACE MATH -->
+    <div id="view-math-space" class="screen hidden">
+        <button class="btn-home" onclick="MathGame.stopSpaceMode(); app.go('view-senior-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+        <div class="space-game" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="space-canvas" id="space-canvas"></div>
+            <div class="space-controls">
+                <div class="space-input" id="space-input"></div>
+                <div class="numpad">
+                    <div class="numpad-row">
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('1')">1</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('2')">2</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('3')">3</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('4')">4</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('5')">5</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('6')">6</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('7')">7</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('8')">8</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('9')">9</button>
+                    </div>
+                    <div class="numpad-row">
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('del')">⌫</button>
+                        <button class="num-btn" onclick="MathGame.handleSpaceInput('0')">0</button>
+                        <button class="num-btn green" onclick="MathGame.handleSpaceInput('ok')">🚀</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPTS -->
+    <script src="data.js"></script>
+    <script src="core.js"></script>
+    <script src="math.js"></script>
+    <script src="syllables.js"></script>
+    <script src="junior.js"></script>
+    <script src="senior.js"></script>
+    <script src="philwords.js"></script>
     <script src="app.js"></script>
 </body>
 
