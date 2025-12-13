@@ -488,7 +488,6 @@ const app = {
     lang: 'ru',
     level: 0,
     isMathMode: false,
-    muted: false,
 
     // Progress
     progress: {
@@ -554,17 +553,7 @@ const app = {
         const currentIndex = langs.indexOf(this.lang);
         this.setLang(langs[(currentIndex + 1) % langs.length]);
     },
-    
-    // Toggle Mute
-    toggleMute() {
-        this.muted = !this.muted;
-        const icon = document.getElementById('mute-icon');
-        icon.textContent = this.muted ? '🔇' : '🔊';
-        
-        if (this.muted && window.speechSynthesis) {
-            window.speechSynthesis.cancel();
-        }
-    },
+
     setLang(lang) {
         this.lang = lang;
         document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
@@ -617,6 +606,14 @@ const app = {
         }
     },
 
+    startSubject(subject) {
+        if (subject === 'letters') {
+            this.isMathMode = false;
+            this.renderMap();
+            this.go('view-map');
+        }
+    },
+
     startSeniorLetters() {
         this.isMathMode = false;
         this.renderMap();
@@ -624,7 +621,11 @@ const app = {
     },
 
     goToMathMenu() {
-        this.go('view-math-menu');
+        if (this.profile === 'junior') {
+            this.startMathGame('junior');
+        } else {
+            this.startMathGame('senior');
+        }
     },
 
     // Map Rendering
@@ -678,12 +679,17 @@ const app = {
     startLevel(idx) {
         this.level = idx;
         console.log('Starting level:', idx);
-        // Game logic will be added in full version
 
-        // For demo, just show success after delay
-        setTimeout(() => {
-            this.finishLevel(3);
-        }, 2000);
+        // Get letter data
+        const letterData = DB[this.lang].letters[idx];
+        if (!letterData) return;
+
+        // For now, just show the letter and allow user to click to finish
+        // Full game logic to be implemented
+        console.log('Level letter:', letterData.l);
+
+        // TODO: Implement actual game screen with letter learning activities
+        // For now, you need to manually trigger level completion
     },
 
     // Finish Level
@@ -736,6 +742,7 @@ const app = {
 
     // Speech
     speak(text) {
+        if (this.muted) return;
         audio.wakeUp();
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
