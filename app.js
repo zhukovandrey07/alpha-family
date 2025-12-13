@@ -8,7 +8,7 @@ const app = {
     lang: 'ru',
     level: 0,
     isMathMode: false,
-    muted: false, // FIX: Added muted state
+    muted: false,
 
     // Progress
     progress: {
@@ -30,13 +30,21 @@ const app = {
         this.loadProgress();
         this.updateLocalization();
         this.hideLoading();
+
+        // Check if language is already set (saved in localStorage)
+        const saved = localStorage.getItem('alphaFamilyPro');
+        if (saved && JSON.parse(saved).lang) {
+            this.go('view-roles');
+        } else {
+            this.go('view-language');
+        }
     },
 
     // Loading
     hideLoading() {
         setTimeout(() => {
             const loading = document.getElementById('loading-screen');
-            loading.classList.add('hidden');
+            if (loading) loading.classList.add('hidden');
         }, 1500);
     },
 
@@ -47,16 +55,16 @@ const app = {
             const data = JSON.parse(saved);
             if (data.progress) this.progress = data.progress;
             if (data.lang) this.lang = data.lang;
-            if (data.muted !== undefined) this.muted = data.muted; // Load mute state
+            if (data.muted !== undefined) this.muted = data.muted;
         }
-        this.updateMuteIcon(); // Update icon on load
+        this.updateMuteIcon();
     },
 
     saveProgress() {
         localStorage.setItem('alphaFamilyPro', JSON.stringify({
             progress: this.progress,
             lang: this.lang,
-            muted: this.muted // Save mute state
+            muted: this.muted
         }));
     },
 
@@ -64,56 +72,57 @@ const app = {
     go(screenId) {
         audio.playClick();
         document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-        document.getElementById(screenId).classList.remove('hidden');
+        const screen = document.getElementById(screenId);
+        if (screen) screen.classList.remove('hidden');
     },
 
     goBackFromMap() {
-        this.go('view-roles');
+        if (this.profile === 'junior') {
+            this.go('view-roles');
+        } else {
+            this.go('view-senior-menu');
+        }
     },
 
     // Language
-    toggleLang() {
-        const langs = ['ru', 'en', 'he'];
-        const currentIndex = langs.indexOf(this.lang);
-        this.setLang(langs[(currentIndex + 1) % langs.length]);
-    },
-
     setLang(lang) {
         this.lang = lang;
         document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
-        const flags = { ru: '🇷🇺', en: '🇺🇸', he: '🇮🇱' };
-        document.querySelector('.lang-flag').textContent = flags[lang];
         this.updateLocalization();
         this.saveProgress();
     },
 
+    getTrans(key) {
+        return TRANS[this.lang][key];
+    },
+
     updateLocalization() {
         const t = TRANS[this.lang];
-        document.getElementById('lbl-subtitle').textContent = t.subtitle;
-        document.getElementById('lbl-jun-title').textContent = t.jun_t;
-        document.getElementById('lbl-jun-desc').textContent = t.jun_d;
-        document.getElementById('lbl-sen-title').textContent = t.sen_t;
-        document.getElementById('lbl-sen-desc').textContent = t.sen_d;
-        document.getElementById('lbl-select-subj').textContent = t.sel_sub;
-        document.getElementById('lbl-letters').textContent = t.l_let;
-        document.getElementById('lbl-math').textContent = t.l_math;
-        document.getElementById('lbl-map').textContent = t.map;
-        document.getElementById('lbl-dict').textContent = t.dict;
-        document.getElementById('lbl-find').textContent = t.find;
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        };
+
+        setText('lbl-subtitle', t.subtitle);
+        setText('lbl-jun-title', t.jun_t);
+        setText('lbl-jun-desc', t.jun_d);
+        setText('lbl-sen-title', t.sen_t);
+        setText('lbl-sen-desc', t.sen_d);
+        setText('lbl-select-subj', t.sel_sub);
+        setText('lbl-letters', t.l_let);
+        setText('lbl-math', t.l_math);
+        setText('lbl-map', t.map);
+        setText('lbl-dict', t.dict);
+        setText('lbl-find', t.find);
+        setText('lbl-select-lang', t.select_lang);
 
         // Syllable labels
-        const lblSyllables = document.getElementById('lbl-syllables');
-        if (lblSyllables) lblSyllables.textContent = t.l_syllables;
-        const lblSylSelect = document.getElementById('lbl-syllable-select');
-        if (lblSylSelect) lblSylSelect.textContent = t.select_mode;
-        const lblSylBasic = document.getElementById('lbl-syl-basic');
-        if (lblSylBasic) lblSylBasic.textContent = t.syl_basic;
-        const lblSylAdv = document.getElementById('lbl-syl-advanced');
-        if (lblSylAdv) lblSylAdv.textContent = t.syl_advanced;
-        const lblNextWord = document.getElementById('lbl-next-word');
-        if (lblNextWord) lblNextWord.textContent = t.next_word;
-        const lblReset = document.getElementById('lbl-reset');
-        if (lblReset) lblReset.textContent = t.reset;
+        setText('lbl-syllables', t.l_syllables);
+        setText('lbl-syllable-select', t.select_mode);
+        setText('lbl-syl-basic', t.syl_basic);
+        setText('lbl-syl-advanced', t.syl_advanced);
+        setText('lbl-next-word', t.next_word);
+        setText('lbl-reset', t.reset);
     },
 
     // Audio Control
@@ -145,7 +154,6 @@ const app = {
         }
     },
 
-    // FIX: Correctly handle subject selection
     startSubject(subject) {
         if (subject === 'letters') {
             this.isMathMode = false;
@@ -154,13 +162,6 @@ const app = {
         }
     },
 
-    startSeniorLetters() {
-        this.isMathMode = false;
-        this.renderMap();
-        this.go('view-map');
-    },
-
-    // FIX: Correctly route to Math Game
     goToMathMenu() {
         if (this.profile === 'junior') {
             MathGame.start('junior');
@@ -172,6 +173,7 @@ const app = {
     // Map Rendering
     renderMap() {
         const container = document.getElementById('map-container');
+        if (!container) return;
         container.innerHTML = '';
 
         let list, current, starsArr;
@@ -209,43 +211,72 @@ const app = {
 
             container.appendChild(node);
 
-            // Stagger animation
+            // Animation
             setTimeout(() => {
                 node.style.animation = 'fadeInUp 0.5s ease forwards';
-
-                if (this.level === user.lvl) {
-                    user.lvl++;
-                    user.stars[this.level] = stars;
-                } else if (this.level < user.lvl) {
-                    if (!user.stars[this.level] || stars > user.stars[this.level]) {
-                        user.stars[this.level] = stars;
-                    }
-                }
-
-                this.saveProgress();
-
-                // Speak praise
-                const praises = TRANS[this.lang].yes;
-                const praise = praises[Math.floor(Math.random() * praises.length)];
-                this.speak(praise);
-
-                // Next level or return to map
-                setTimeout(() => {
-                    const nextIdx = this.level + 1;
-                    if (nextIdx < maxLvl) {
-                        this.startLevel(nextIdx);
-                    } else {
-                        this.renderMap();
-                        this.go('view-map');
-                    }
-                }, 2000);
-            }, idx * 100);
+            }, idx * 50);
         });
+    },
+
+    // Level Management
+    startLevel(idx) {
+        this.level = idx;
+        let data;
+
+        if (this.isMathMode && this.profile === 'junior') {
+            // Junior Math (Counting)
+            MathGame.start('junior');
+        } else {
+            // Letters
+            data = DB[this.lang].letters[idx];
+            if (this.profile === 'junior') {
+                JuniorGame.start(data);
+            } else {
+                SeniorGame.start(data);
+            }
+        }
+    },
+
+    finishLevel(stars) {
+        // Update progress
+        let currentLvl, starsArr;
+
+        if (this.isMathMode && this.profile === 'junior') {
+            currentLvl = this.progress.junior.numbers.lvl;
+            starsArr = this.progress.junior.numbers.stars;
+        } else {
+            currentLvl = this.progress[this.profile][this.lang].lvl;
+            starsArr = this.progress[this.profile][this.lang].stars;
+        }
+
+        if (this.level === currentLvl) {
+            // Unlock next
+            if (this.isMathMode && this.profile === 'junior') {
+                this.progress.junior.numbers.lvl++;
+            } else {
+                this.progress[this.profile][this.lang].lvl++;
+            }
+        }
+
+        // Save stars
+        if (!starsArr[this.level] || stars > starsArr[this.level]) {
+            starsArr[this.level] = stars;
+        }
+
+        this.saveProgress();
+        this.renderMap();
+        this.go('view-map');
+
+        // Praise
+        confetti.fire();
+        const praises = TRANS[this.lang].yes;
+        const praise = praises[Math.floor(Math.random() * praises.length)];
+        this.speak(praise);
     },
 
     // Speech
     speak(text) {
-        if (this.muted) return; // FIX: Respect mute state
+        if (this.muted) return;
         audio.wakeUp();
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
@@ -260,14 +291,13 @@ const app = {
     startSyllableAdvanced() { SyllableGame.startAdvanced(); },
     nextSyllableWord() { SyllableGame.nextWord(); },
 
-    // Dictionary placeholder
+    // Dictionary
     showDictionary() {
         const container = document.getElementById('dict-container');
         if (!container) return;
         container.innerHTML = '';
         const list = DB[this.lang].letters;
 
-        // Show all letters
         for (let i = 0; i < list.length; i++) {
             const lObj = list[i];
             const div = document.createElement('div');
