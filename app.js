@@ -488,6 +488,7 @@ const app = {
     lang: 'ru',
     level: 0,
     isMathMode: false,
+    muted: false,
 
     // Progress
     progress: {
@@ -553,7 +554,17 @@ const app = {
         const currentIndex = langs.indexOf(this.lang);
         this.setLang(langs[(currentIndex + 1) % langs.length]);
     },
-
+    
+    // Toggle Mute
+    toggleMute() {
+        this.muted = !this.muted;
+        const icon = document.getElementById('mute-icon');
+        icon.textContent = this.muted ? '🔇' : '🔊';
+        
+        if (this.muted && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+        }
+    },
     setLang(lang) {
         this.lang = lang;
         document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
