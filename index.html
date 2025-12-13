@@ -91,93 +91,168 @@
 
         <div class="submenu-container">
             <h2 class="section-title" id="lbl-select-subj">Выбери предмет:</h2>
-            <div id="view-map" class="screen hidden">
-                <button class="btn-home" onclick="app.goBackFromMap()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    </svg>
+            <div class="subject-grid">
+                <button class="subject-btn letters-btn" onclick="app.startSubject('letters')">
+                    <div class="btn-icon">🔤</div>
+                    <span id="lbl-letters">Буквы</span>
+                    <div class="btn-ripple"></div>
                 </button>
+                <button class="subject-btn math-btn" onclick="app.goToMathMenu()">
+                    <div class="btn-icon">🔢</div>
+                    <span id="lbl-math">Математика</span>
+                    <div class="btn-ripple"></div>
+                </button>
+                <button class="subject-btn syllable-btn" onclick="app.goToSyllableMenu()">
+                    <div class="btn-icon">📝</div>
+                    <span id="lbl-syllables">Слоги</span>
+                    <div class="btn-ripple"></div>
+                </button>
+            </div>
+        </div>
+    </div>
 
-                <div class="map-container-wrapper">
-                    <div class="map-header">
-                        <h2 class="section-title animated-title">
-                            <span class="title-icon">🗺️</span>
-                            <span id="lbl-map">Карта уровней</span>
-                        </h2>
-                    </div>
+    <!-- 3. MAP VIEW -->
+    <div id="view-map" class="screen hidden">
+        <button class="btn-home" onclick="app.goBackFromMap()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
 
-                    <div class="map-actions">
-                        <button class="action-btn dict-btn" onclick="app.showDictionary()">
-                            <span class="btn-icon">📖</span>
-                            <span id="lbl-dict">Словарь</span>
-                        </button>
-                        <button class="action-btn find-btn" id="btn-philwords" onclick="app.showPhilwordMenu()">
-                            <span class="btn-icon">🔎</span>
-                            <span id="lbl-find">Найди слова</span>
-                        </button>
-                    </div>
-
-                    <div class="level-path" id="map-container"></div>
-                </div>
+        <div class="map-container-wrapper">
+            <div class="map-header">
+                <h2 class="section-title animated-title">
+                    <span class="title-icon">🗺️</span>
+                    <span id="lbl-map">Карта уровней</span>
+                </h2>
             </div>
 
-
-            <!-- 4. SYLLABLE MENU -->
-            <div id="view-syllable-menu" class="screen center-content hidden">
-                <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    </svg>
+            <div class="map-actions">
+                <button class="action-btn dict-btn" onclick="app.showDictionary()">
+                    <span class="btn-icon">📖</span>
+                    <span id="lbl-dict">Словарь</span>
                 </button>
-
-                <div class="submenu-container">
-                    <h2 class="section-title" id="lbl-syllable-select">Выбери режим:</h2>
-                    <div class="subject-grid">
-                        <button class="subject-btn letters-btn" onclick="app.startSyllableBasic()">
-                            <div class="btn-icon">📖</div>
-                            <span id="lbl-syl-basic">По слогам</span>
-                            <div class="btn-ripple"></div>
-                        </button>
-                        <button class="subject-btn math-btn" onclick="app.startSyllableAdvanced()">
-                            <div class="btn-icon">🧩</div>
-                            <span id="lbl-syl-advanced">Собери слово</span>
-                            <div class="btn-ripple"></div>
-                        </button>
-                    </div>
-                </div>
+                <button class="action-btn find-btn" id="btn-philwords" onclick="app.showPhilwordMenu()">
+                    <span class="btn-icon">🔎</span>
+                    <span id="lbl-find">Найди слова</span>
+                </button>
             </div>
 
-            <!-- 5. SYLLABLE BASIC MODE -->
-            <div id="view-syllable-basic" class="screen center-content hidden">
-                <button class="btn-home" onclick="app.go('view-syllable-menu')" aria-label="Back">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    </svg>
+            <div class="level-path" id="map-container"></div>
+        </div>
+    </div>
+
+    <!-- 4. SYLLABLE MENU -->
+    <div id="view-syllable-menu" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+
+        <div class="submenu-container">
+            <h2 class="section-title" id="lbl-syllable-select">Выбери режим:</h2>
+            <div class="subject-grid">
+                <button class="subject-btn letters-btn" onclick="app.startSyllableBasic()">
+                    <div class="btn-icon">📖</div>
+                    <span id="lbl-syl-basic">По слогам</span>
+                    <div class="btn-ripple"></div>
                 </button>
+                <button class="subject-btn math-btn" onclick="app.startSyllableAdvanced()">
+                    <div class="btn-icon">🧩</div>
+                    <span id="lbl-syl-advanced">Собери слово</span>
+                    <div class="btn-ripple"></div>
+                </button>
+            </div>
+        </div>
+    </div>
 
-                <div class="syllable-exercise-container">
-                    <div class="word-display-area">
-                        <div class="word-emoji" id="syllable-emoji">🐱</div>
-                        <h2 class="word-title" id="syllable-word">кош-ка</h2>
-                        <p class="syllable-hint" id="syllable-hint">Нажми на слог</p>
-                    </div>
+    <!-- 5. SYLLABLE BASIC MODE -->
+    <div id="view-syllable-basic" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-syllable-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
 
-                    <div class="syllable-tiles-container" id="syllable-tiles">
-                        <!-- Syllable tiles will be dynamically generated -->
-                    </div>
-
-                    <div class="syllable-controls">
-                        <button class="action-btn" id="btn-next-word" onclick="app.nextSyllableWord()">
-                            <span class="btn-icon">➡️</span>
-                            <span id="lbl-next-word">Следующее слово</span>
-                        </button>
-                    </div>
-                </div>
+        <div class="syllable-exercise-container">
+            <div class="word-display-area">
+                <div class="word-emoji" id="syllable-emoji">🐱</div>
+                <h2 class="word-title" id="syllable-word">кош-ка</h2>
+                <p class="syllable-hint" id="syllable-hint">Нажми на слог</p>
             </div>
 
-            <script src="app.js"></script>
+            <div class="syllable-tiles-container" id="syllable-tiles">
+                <!-- Syllable tiles will be dynamically generated -->
+            </div>
+
+            <div class="syllable-controls">
+                <button class="action-btn" id="btn-next-word" onclick="app.nextSyllableWord()">
+                    <span class="btn-icon">➡️</span>
+                    <span id="lbl-next-word">Следующее слово</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. SYLLABLE ADVANCED MODE -->
+    <div id="view-syllable-advanced" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-syllable-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+
+        <div class="syllable-exercise-container">
+            <div class="word-display-area">
+                <div class="word-emoji" id="advanced-emoji">🐱</div>
+                <p class="syllable-hint">Собери слово из слогов:</p>
+            </div>
+
+            <div class="syllable-assembly-zone" id="assembly-zone">
+                <!-- Selected syllables will appear here -->
+            </div>
+
+            <div class="syllable-scrambled-container" id="scrambled-tiles">
+                <!-- Scrambled syllable tiles will be dynamically generated -->
+            </div>
+
+            <div class="syllable-controls">
+                <button class="action-btn" id="btn-reset" onclick="app.resetSyllableAssembly()">
+                    <span class="btn-icon">🔄</span>
+                    <span id="lbl-reset">Сброс</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. MATH GAME -->
+    <div id="view-math-game" class="screen center-content hidden">
+        <button class="btn-home" onclick="app.go('view-senior-menu')" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+        </button>
+
+        <div class="math-game-container">
+            <div class="math-header">
+                <div class="math-score">⭐ <span id="math-score">0</span></div>
+                <div class="math-level">Level <span id="math-level">1</span></div>
+            </div>
+
+            <div class="math-problem-area" id="math-problem-area">
+                <!-- Dynamic Content: Counting items or Equation -->
+                <div class="math-visual-items" id="math-visual-items"></div>
+                <div class="math-equation" id="math-equation"></div>
+            </div>
+
+            <div class="math-options-grid" id="math-options">
+                <!-- Answer buttons -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 
-        </html>
 </html>
-
